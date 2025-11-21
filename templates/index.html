@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RAZIEL SERVER 🦇 - Upload/Download</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"> <!-- Ícones Font Awesome -->
+    <link rel="shortcut icon" href="servidor.ico" type="image/x-icon">
+    <style>
+        /* Paleta de cores roxo dark: Roxo escuro (#2d1b3d), roxo médio (#4a0e4e), roxo vibrante (#9c27b0), preto (#0d0d0d), acentos (#e91e63) */
+        body {
+            background: linear-gradient(135deg, #0d0d0d 0%, #2d1b3d 50%, #4a0e4e 100%);
+            color: #ffffff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            margin: 0;
+            overflow-x: hidden;
+        }
+
+        /* Glassmorphism: Fundo com blur, transparência e bordas suaves */
+        .glass-container {
+            backdrop-filter: blur(20px);
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.37);
+            padding: 2rem;
+            margin: 2rem auto;
+            max-width: 800px;
+            transition: all 0.3s ease;
+        }
+
+        .glass-container:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(156, 39, 176, 0.3);
+        }
+
+        /* Títulos com gradiente roxo e efeito glow */
+        h1 {
+            font-size: 3rem;
+            font-weight: bold;
+            background: linear-gradient(45deg, #9c27b0, #e91e63);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-align: center;
+            margin-bottom: 1rem;
+            text-shadow: 0 0 20px rgba(81, 27, 112, 0.5);
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow {
+            from { text-shadow: 0 0 20px rgba(92, 10, 168, 0.5); }
+            to { text-shadow: 0 0 30px rgba(156, 39, 176, 0.8); }
+        }
+
+        h5 {
+            color: #ffffff;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+        }
+
+        /* Cards com glassmorphism */
+        .card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            transform: scale(1.02);
+            box-shadow: 0 8px 30px rgba(156, 39, 176, 0.4);
+        }
+
+        .card-header {
+            background: rgba(74, 14, 78, 0.8);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            color: #ffffff;
+            font-weight: bold;
+        }
+
+        .card-body {
+            padding: 2rem;
+        }
+
+        /* Formulário estilizado */
+        .form-control {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            color: #f5f5f5;
+            padding: 1.20rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: #9c27b0;
+            box-shadow: 0 0 10px rgba(156, 39, 176, 0.5);
+            color: #ffffff;
+        }
+
+        .form-label {
+            color: #ffffff;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+
+        }
+
+        /* Botões com gradiente roxo e efeitos */
+        .btn-primary {
+            background: linear-gradient(45deg, #9c27b0, #e91e63);
+            border: none;
+            border-radius: 25px;
+            padding: 0.75rem 2rem;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(156, 39, 176, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(156, 39, 176, 0.5);
+            background: linear-gradient(45deg, #7b1fa2, #c2185b);
+        }
+
+        .btn-success {
+            background: linear-gradient(45deg, #4a0e4e, #3a0144);
+            border: none;
+            border-radius: 20px;
+            padding: 0.5rem 1rem;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 10px rgba(74, 14, 78, 0.3);
+        }
+
+        .btn-success:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 15px rgba(74, 14, 78, 0.5);
+            background: linear-gradient(45deg, #2d1b3d, #7b1fa2);
+        }
+
+        /* Lista de arquivos com glassmorphism */
+        .list-group-item {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            margin-bottom: 0.5rem;
+            color: #ffffff;
+            transition: all 0.3s ease;
+        }
+
+        .list-group-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateX(5px);
+        }
+
+        .list-group-item a {
+            color: #9c27b0;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .list-group-item a:hover {
+            color: #e91e63;
+            text-decoration: underline;
+        }
+
+        /* Texto mudo */
+        .text-muted {
+            color: #b0b0b0 !important;
+        }
+
+        /* Ícones para modernizar */
+        .card-header h5::before {
+            content: "\f093"; /* Ícone de upload/download do Font Awesome */
+            font-family: "Font Awesome 6 Free";
+            margin-right: 0.5rem;
+            color: #9c27b0;
+        }
+
+        /* Responsividade */
+        @media (max-width: 768px) {
+            h1 { font-size: 2rem; }
+            .glass-container { padding: 1rem; margin: 1rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="glass-container">
+        <h1>RAZIEL SERVER 🦇</h1>
+        <p class="text-center text-muted mb-4">Servidor de Upload e Download</p>
+        <!-- Botão de Login Admin (novo) -->
+        <div class="text-center mb-4">
+            <a href="admin_login.html" class="btn btn-primary"><i class="fas fa-sign-in-alt"></i> Login Admin</a>
+        </div>
+
+        <!-- Formulário de Upload -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5>Fazer Upload de Arquivos</h5>
+            </div>
+            <div class="card-body">
+                <form action="/upload" method="post" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <label for="file" class="form-label"><i class="fas fa-file-upload"></i> Selecione o arquivo:</label>
+                        <input type="file" class="form-control" id="file" name="file" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary"><i class="fas fa-upload"></i> Enviar Arquivo</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Lista de Arquivos para Download -->
+        <div class="card">
+            <div class="card-header">
+                <h5>Arquivos Disponíveis para Download</h5>
+            </div>
+            <div class="card-body">
+                {% if files %}
+                    <ul class="list-group">
+                        {% for file in files %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <span><i class="fas fa-file"></i> {{ file }}</span>
+                                <a href="/download/{{ file }}" class="btn btn-success btn-sm"><i class="fas fa-download"></i> Baixar</a>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="text-muted"><i class="fas fa-folder-open"></i> Nenhum arquivo disponível.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
