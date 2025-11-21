@@ -57,7 +57,7 @@ def download_file(filename):
     return send_from_directory(app.config['UPLOAD_FOLDER'], filename, as_attachment=True)
 
 # Rotas admin
-@app.route('/admin/login', methods=['GET', 'POST'])
+@app.route('/admin/login', methods=['GET', 'POST'])  # CORRIGIDO: Agora exibe templates/admin_login.html
 def admin_login():
     if request.method == 'POST':
         username = request.form['username']
@@ -79,7 +79,7 @@ def admin_logout():
 @login_required
 def admin_files():
     files = os.listdir(app.config['UPLOAD_FOLDER'])
-    return render_template('admin_files.html', files=files)
+    return render_template('admin_files.html', files=files)  # Exibe templates/admin_files.html
 
 @app.route('/admin/delete/<filename>')
 @login_required
