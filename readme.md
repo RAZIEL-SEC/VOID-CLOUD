@@ -31,7 +31,7 @@ Isso garante privacidade e evita acúmulo de dados, mas certifique-se de baixar 
 ###
 
 <div align="center">
-  <img height="350" src="https://www.pinterest.com/ideas/black-void-gif/924709121713/"  />
+  <img height="350" src="https://i.pinimg.com/originals/7e/79/55/7e7955af1c47f20893602ab504b93220.gif"  />
 </div>
 
 ###
