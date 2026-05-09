@@ -295,16 +295,17 @@
 
 <main>
   <!-- Upload Zone -->
+  <input type="file" id="fileInput" multiple style="display:none">
   <div class="upload-zone" id="dropZone">
     <span class="upload-icon">🦇</span>
     <h2>Arraste arquivos aqui</h2>
     <p>ou clique para selecionar — múltiplos arquivos suportados</p>
-    <input type="file" id="fileInput" multiple>
     <div class="upload-meta">
-      <input type="text" id="folderInput" placeholder="Pasta (ex: projetos)" value="{{ current_folder or '' }}">
-      <button class="btn btn-primary" onclick="document.getElementById('fileInput').click()">
+      <input type="text" id="folderInput" placeholder="Pasta (ex: projetos)" value="{{ current_folder or '' }}"
+             onclick="event.stopPropagation()">
+      <label for="fileInput" class="btn btn-primary" onclick="event.stopPropagation()">
         ＋ Selecionar Arquivos
-      </button>
+      </label>
     </div>
     <div id="upload-progress">
       <div class="progress-bar-wrap">
@@ -420,7 +421,14 @@
     const files = ev.dataTransfer.files;
     if (files.length) uploadFiles(files);
   });
-  fileInput.addEventListener('change', () => uploadFiles(fileInput.files));
+  // clicking anywhere on the zone (except text input) opens file picker
+  dropZone.addEventListener('click', ev => {
+    if (ev.target.tagName === 'INPUT' || ev.target.tagName === 'LABEL') return;
+    fileInput.click();
+  });
+  fileInput.addEventListener('change', () => {
+    if (fileInput.files.length) uploadFiles(fileInput.files);
+  });
 
   // ── Upload with progress ─────────────────────────────────────────────────
   function uploadFiles(files) {
