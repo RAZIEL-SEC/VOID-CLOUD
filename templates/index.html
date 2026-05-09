@@ -1,650 +1,589 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt-BR">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>VOID CLOUD</title>
-<link rel="icon" href="/static/favicon.ico" type="image/x-icon">
-<link rel="stylesheet" href="/stindex.css">
-<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
-<style>
-  :root{--bg:#0a0a0f;--surface:#111118;--surface2:#1a1a24;--border:#2a2a3a;
-    --accent:#7c3aed;--accent2:#a855f7;--accent-glow:rgba(124,58,237,0.25);
-    --text:#e8e8f0;--muted:#6b6b80;--danger:#ef4444;--success:#22c55e;--warning:#f59e0b}
-  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-  body{background:var(--bg);color:var(--text);font-family:'Syne',sans-serif;min-height:100vh;overflow-x:hidden}
-  body::before{content:'';position:fixed;inset:0;
-    background-image:linear-gradient(rgba(124,58,237,0.04) 1px,transparent 1px),
-    linear-gradient(90deg,rgba(124,58,237,0.04) 1px,transparent 1px);
-    background-size:40px 40px;pointer-events:none;z-index:0}
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>VOID CLOUD</title>
+    <link rel="stylesheet" href="/style_index.css" />
+    <link rel="icon" href="/static/favicon.ico" type="image/x-icon" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;700;800&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <header>
+      <div class="logo">🦇 VOID CLOUD</div>
+      <nav><a href="/admin/login">Admin</a></nav>
+    </header>
 
-  header{position:sticky;top:0;z-index:100;background:rgba(10,10,15,0.92);
-    backdrop-filter:blur(16px);border-bottom:1px solid var(--border);
-    padding:0 1.5rem;display:flex;align-items:center;justify-content:space-between;height:58px}
-  .logo{font-size:1.2rem;font-weight:800;letter-spacing:-0.5px;
-    background:linear-gradient(135deg,#a855f7,#7c3aed);
-    -webkit-background-clip:text;-webkit-text-fill-color:transparent}
-  header nav a{color:var(--muted);text-decoration:none;font-size:0.82rem;
-    padding:0.38rem 0.85rem;border-radius:6px;border:1px solid var(--border);transition:all .2s}
-  header nav a:hover{color:var(--text);border-color:var(--accent)}
-
-  main{position:relative;z-index:1;max-width:1100px;margin:0 auto;padding:1.75rem 1.25rem}
-
-  .tabs{display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:1.75rem}
-  .tab{padding:0.65rem 1.2rem;font-size:0.85rem;font-weight:700;cursor:pointer;
-    color:var(--muted);border:none;background:transparent;
-    border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .2s;
-    font-family:'Syne',sans-serif}
-  .tab:hover{color:var(--text)}
-  .tab.active{color:var(--accent2);border-bottom-color:var(--accent)}
-  .tab-panel{display:none}
-  .tab-panel.active{display:block}
-
-  input[type="file"]{display:none}
-  .upload-zone{border:2px dashed var(--border);border-radius:14px;padding:10rem 2rem;
-    text-align:center;cursor:pointer;transition:all .3s;background:var(--surface);
-    position:relative;overflow:hidden;margin-bottom:1.5rem}
-  .upload-zone::before{content:'';position:absolute;inset:0;
-    background:radial-gradient(ellipse at 50% 0%,var(--accent-glow),transparent 70%);
-    opacity:0;transition:opacity .3s}
-  .upload-zone.drag-over{border-color:var(--accent);box-shadow:0 0 28px var(--accent-glow)}
-  .upload-zone.drag-over::before{opacity:1}
-  .upload-zone:hover{border-color:#3d3d52}
-  .upload-icon{font-size:2.3rem;margin-bottom:0.7rem;display:block}
-  .upload-zone h2{font-size:1.05rem;font-weight:700;margin-bottom:0.35rem}
-  .upload-zone p{color:var(--muted);font-size:0.82rem}
-
-  .upload-row{display:flex;gap:0.6rem;margin-top:1.3rem;
-    justify-content:center;align-items:center;flex-wrap:wrap}
-
-  /* SELECT de pasta substituindo o chip de texto que não funcionava */
-  .folder-select{background:var(--surface2);border:1px solid var(--border);
-    color:var(--text);padding:0.46rem 1.6rem 0.46rem 0.7rem;border-radius:8px;
-    font-family:'Space Mono',monospace;font-size:0.82rem;outline:none;cursor:pointer;
-    transition:border-color .2s;appearance:none;-webkit-appearance:none;
-    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%236b6b80' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
-    background-repeat:no-repeat;background-position:right 0.55rem center}
-  .folder-select:focus{border-color:var(--accent)}
-
-  #upload-progress{display:none;margin-top:1rem}
-  .prog-wrap{background:var(--surface2);border-radius:99px;height:5px;overflow:hidden;margin-bottom:.35rem}
-  .prog-bar{height:100%;width:0%;border-radius:99px;
-    background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .15s}
-  .prog-lbl{font-size:.75rem;color:var(--muted);font-family:'Space Mono',monospace}
-
-  .folders-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem}
-  .folders-header h3{font-size:1rem;font-weight:700}
-  .folder-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:0.75rem;margin-bottom:1.5rem}
-  .folder-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;
-    padding:1rem;display:flex;align-items:center;justify-content:space-between;
-    gap:0.5rem;transition:border-color .2s;cursor:pointer}
-  .folder-card:hover{border-color:var(--accent)}
-  .folder-card.active-folder{border-color:var(--accent);background:rgba(124,58,237,0.08)}
-  .folder-card-left{display:flex;align-items:center;gap:0.6rem;min-width:0}
-  .folder-card-left span{font-weight:700;font-size:0.875rem;
-    white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .folder-card-left small{font-size:0.72rem;color:var(--muted);font-family:'Space Mono',monospace;display:block;margin-top:0.1rem}
-  .folder-actions{display:flex;gap:0.3rem;flex-shrink:0}
-  .icon-btn{background:transparent;border:none;color:var(--muted);cursor:pointer;
-    padding:0.25rem;border-radius:5px;font-size:0.9rem;transition:all .15s;line-height:1}
-  .icon-btn:hover{background:var(--surface2);color:var(--text)}
-  .icon-btn.danger:hover{color:var(--danger)}
-
-  .new-folder-row{display:flex;gap:0.5rem;margin-bottom:1.25rem}
-  .new-folder-row input{flex:1;background:var(--surface);border:1px solid var(--border);
-    color:var(--text);padding:0.55rem 0.9rem;border-radius:8px;
-    font-family:'Syne',sans-serif;font-size:0.875rem;outline:none;transition:border-color .2s}
-  .new-folder-row input:focus{border-color:var(--accent)}
-  .new-folder-row input::placeholder{color:var(--muted)}
-
-  .btn{display:inline-flex;align-items:center;gap:0.4rem;
-    padding:0.57rem 1.2rem;border-radius:8px;border:none;
-    font-family:'Syne',sans-serif;font-weight:700;font-size:0.855rem;
-    cursor:pointer;transition:all .2s;text-decoration:none;white-space:nowrap}
-  .btn-primary{background:var(--accent);color:#fff;box-shadow:0 0 14px var(--accent-glow)}
-  .btn-primary:hover{background:var(--accent2);transform:translateY(-1px)}
-  .btn-ghost{background:transparent;color:var(--muted);border:1px solid var(--border)}
-  .btn-ghost:hover{color:var(--text);border-color:var(--accent)}
-  .btn-danger{background:rgba(239,68,68,.12);color:var(--danger);border:1px solid rgba(239,68,68,.3)}
-  .btn-danger:hover{background:rgba(239,68,68,.25)}
-  .btn-sm{padding:0.33rem 0.7rem;font-size:.75rem}
-  label.btn{cursor:pointer}
-
-  .toolbar{display:flex;gap:0.6rem;align-items:flex-start;flex-wrap:wrap;margin-bottom:0.9rem}
-  .search-wrap{flex:1;min-width:180px;position:relative}
-  .search-wrap svg{position:absolute;left:.8rem;top:50%;transform:translateY(-50%);
-    pointer-events:none;color:var(--muted)}
-  .search-wrap input{width:100%;background:var(--surface);border:1px solid var(--border);
-    color:var(--text);padding:.62rem 1rem .62rem 2.5rem;border-radius:8px;
-    font-family:'Syne',sans-serif;font-size:.855rem;outline:none;transition:border-color .2s}
-  .search-wrap input:focus{border-color:var(--accent)}
-  .search-wrap input::placeholder{color:var(--muted)}
-
-  .ftabs{display:flex;gap:0.35rem;flex-wrap:wrap;align-items:center}
-  .ftab{padding:.38rem .9rem;border-radius:99px;border:1px solid var(--border);
-    background:transparent;color:var(--muted);font-family:'Syne',sans-serif;
-    font-size:.75rem;font-weight:700;cursor:pointer;transition:all .2s}
-  .ftab:hover{color:var(--text);border-color:var(--accent)}
-  .ftab.active{background:var(--accent);color:#fff;border-color:var(--accent)}
-
-  .results-count{font-size:.73rem;color:var(--muted);font-family:'Space Mono',monospace;
-    margin-bottom:0.85rem;min-height:1rem}
-
-  .file-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:0.85rem}
-  .file-card{background:var(--surface);border:1px solid var(--border);
-    border-radius:11px;overflow:hidden;transition:all .2s}
-  .file-card:hover{border-color:var(--accent);box-shadow:0 4px 18px var(--accent-glow);transform:translateY(-2px)}
-  .file-card.hidden{display:none}
-  .file-preview{height:120px;background:var(--surface2);display:flex;align-items:center;
-    justify-content:center;font-size:2.6rem;overflow:hidden;cursor:pointer;position:relative}
-  .file-preview img{width:100%;height:100%;object-fit:cover}
-  .file-preview .ov{position:absolute;inset:0;background:rgba(0,0,0,.55);
-    display:flex;align-items:center;justify-content:center;
-    opacity:0;transition:opacity .2s;font-size:.85rem;font-weight:700;color:#fff}
-  .file-card:hover .ov{opacity:1}
-  .file-info{padding:.85rem}
-  .file-name{font-weight:700;font-size:.855rem;white-space:nowrap;overflow:hidden;
-    text-overflow:ellipsis;margin-bottom:.3rem}
-  .file-meta{display:flex;gap:.35rem;align-items:center;font-size:.7rem;color:var(--muted);
-    font-family:'Space Mono',monospace;margin-bottom:.7rem;flex-wrap:wrap}
-  .fbadge{background:var(--surface2);border:1px solid var(--border);
-    padding:.08rem .42rem;border-radius:99px;font-size:.66rem}
-  .file-actions{display:flex;gap:.35rem;flex-wrap:wrap}
-
-  .modal-bg{display:none;position:fixed;inset:0;z-index:999;
-    background:rgba(0,0,0,.82);backdrop-filter:blur(8px);
-    align-items:center;justify-content:center}
-  .modal-bg.open{display:flex}
-  .modal{background:var(--surface);border:1px solid var(--border);border-radius:15px;
-    padding:1.4rem;max-width:92vw;max-height:92vh;overflow:auto;position:relative;min-width:290px}
-  .modal h3{margin-bottom:.9rem;font-size:.95rem;word-break:break-all;padding-right:2rem}
-  .modal img{max-width:100%;max-height:60vh;border-radius:7px;display:block}
-  .modal iframe{width:min(70vw,900px);height:70vh;border:none;border-radius:7px}
-  .modal-close{position:absolute;top:.9rem;right:.9rem;background:var(--surface2);
-    border:1px solid var(--border);color:var(--text);width:28px;height:28px;border-radius:50%;
-    display:flex;align-items:center;justify-content:center;cursor:pointer;
-    font-size:.85rem;transition:all .2s}
-  .modal-close:hover{background:var(--danger);border-color:var(--danger)}
-  .share-form{display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.9rem}
-  .share-form select{background:var(--surface2);border:1px solid var(--border);color:var(--text);
-    padding:.48rem .7rem;border-radius:7px;font-family:'Syne',sans-serif;font-size:.855rem;outline:none}
-  .share-result{margin-top:.9rem;background:var(--surface2);border:1px solid var(--border);
-    border-radius:7px;padding:.7rem;font-family:'Space Mono',monospace;
-    font-size:.76rem;word-break:break-all;display:none;line-height:1.5}
-
-  /* Select do modal mover */
-  .move-select{width:100%;background:var(--surface2);border:1px solid var(--border);
-    color:var(--text);padding:.55rem .8rem;border-radius:8px;
-    font-family:'Syne',sans-serif;font-size:.875rem;outline:none;
-    cursor:pointer;margin-bottom:.9rem;transition:border-color .2s}
-  .move-select:focus{border-color:var(--accent)}
-  .modal-actions{display:flex;gap:.5rem;justify-content:flex-end}
-
-  .empty-state{text-align:center;padding:3.5rem 2rem;color:var(--muted)}
-  .empty-state .icon{font-size:3rem;display:block;margin-bottom:1rem;opacity:.3}
-
-  .toast{position:fixed;bottom:1.4rem;right:1.4rem;z-index:9999;background:var(--surface);
-    border:1px solid var(--border);border-radius:9px;padding:.7rem 1rem;
-    font-size:.855rem;transform:translateY(70px);opacity:0;transition:all .3s;pointer-events:none}
-  .toast.show{transform:translateY(0);opacity:1}
-  .toast.success{border-color:var(--success);color:var(--success)}
-  .toast.error{border-color:var(--danger);color:var(--danger)}
-
-  @media(max-width:600px){
-    .file-grid{grid-template-columns:1fr 1fr}
-    .modal iframe{width:95vw;height:52vh}
-    .folder-grid{grid-template-columns:1fr 1fr}
-  }
-  @media(max-width:380px){.file-grid{grid-template-columns:1fr}}
-</style>
-</head>
-<body>
-
-<header>
-  <div class="logo">🦇 VOID CLOUD</div>
-  <nav><a href="/admin/login">Admin</a></nav>
-</header>
-
-<main>
-
-  <div class="tabs">
-    <button class="tab active" onclick="switchTab('arquivos',this)">📁 Arquivos</button>
-    <button class="tab" onclick="switchTab('upload',this)">⬆ Upload</button>
-    <button class="tab" onclick="switchTab('pastas',this)">📂 Pastas</button>
-  </div>
-
-  <!-- ══ Aba: Arquivos ══ -->
-  <div class="tab-panel active" id="tab-arquivos">
-    <div class="toolbar">
-      <div class="search-wrap">
-        <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
-          <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
-        </svg>
-        <input type="text" id="searchInput" placeholder="Buscar por nome…" oninput="filterFiles(this.value)">
+    <main>
+      <div class="tabs">
+        <button class="tab active" onclick="switchTab('arquivos', this)">
+          📁 Arquivos
+        </button>
+        <button class="tab" onclick="switchTab('upload', this)">
+          ⬆ Upload
+        </button>
+        <button class="tab" onclick="switchTab('pastas', this)">
+          📂 Pastas
+        </button>
       </div>
-      {% if folders and folders|length > 0 %}
-      <div class="ftabs" id="folderTabs">
-        <button class="ftab active" data-folder="" onclick="setFolder(this,'')">Todos</button>
-        {% for folder in folders %}
-        <button class="ftab" data-folder="{{ folder }}" onclick="setFolder(this,'{{ folder }}')">{{ folder }}</button>
-        {% endfor %}
-      </div>
-      {% endif %}
-    </div>
 
-    <div class="results-count" id="resultsCount"></div>
-
-    {% if files %}
-    <div class="file-grid" id="fileGrid">
-      {% for f in files %}
-      <div class="file-card" data-name="{{ f.name|lower }}" data-folder="{{ f.folder }}">
-        <div class="file-preview" onclick="openPreview('{{ f.name }}','{{ f.preview_type }}')">
-          {% if f.preview_type == 'image' %}<img src="/preview/{{ f.name }}" alt="{{ f.name }}" loading="lazy">
-          {% elif f.preview_type == 'pdf' %}📄
-          {% elif f.category == 'video' %}🎬
-          {% elif f.category == 'audio' %}🎵
-          {% elif f.category == 'archive' %}🗜️
-          {% elif f.category == 'doc' %}📝
-          {% else %}📁{% endif %}
-          {% if f.preview_type %}<div class="ov">👁 Ver</div>{% endif %}
-        </div>
-        <div class="file-info">
-          <div class="file-name" title="{{ f.name }}">{{ f.name }}</div>
-          <div class="file-meta">
-            <span>{{ f.size }}</span>
-            <span class="fbadge">📂 {{ f.folder }}</span>
-            <span>⬇ {{ f.downloads }}</span>
+      <!-- ══ Aba: Arquivos ══ -->
+      <div class="tab-panel active" id="tab-arquivos">
+        <div class="toolbar">
+          <div class="search-wrap">
+            <svg
+              width="15"
+              height="15"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              stroke-width="2.2"
+            >
+              <circle cx="11" cy="11" r="8" />
+              <path d="m21 21-4.35-4.35" />
+            </svg>
+            <input
+              type="text"
+              id="searchInput"
+              placeholder="Buscar por nome…"
+              oninput="filterFiles(this.value)"
+            />
           </div>
-          <div class="file-actions">
-            <a href="/download/{{ f.name }}" class="btn btn-primary btn-sm">⬇ Baixar</a>
-            <button class="btn btn-ghost btn-sm" onclick="openShare('{{ f.name }}')">🔗</button>
-            <button class="btn btn-ghost btn-sm" onclick="openMoveModal('{{ f.name }}','{{ f.folder }}')">↗ Mover</button>
-            <button class="btn btn-danger btn-sm" onclick="deleteFile('{{ f.name }}', this)">🗑</button>
+          {% if folders and folders|length > 0 %}
+          <div class="ftabs" id="folderTabs">
+            <button
+              class="ftab active"
+              data-folder=""
+              onclick="setFolder(this, '')"
+            >
+              Todos
+            </button>
+            {% for folder in folders %}
+            <button
+              class="ftab"
+              data-folder="{{ folder }}"
+              onclick="setFolder(this,'{{ folder }}')"
+            >
+              {{ folder }}
+            </button>
+            {% endfor %}
           </div>
+          {% endif %}
         </div>
-      </div>
-      {% endfor %}
-    </div>
-    <div class="empty-state" id="noResults" style="display:none">
-      <span class="icon">🔍</span><p>Nenhum arquivo encontrado.</p>
-    </div>
-    {% else %}
-    <div class="empty-state">
-      <span class="icon">🦇</span>
-      <p>Sem arquivos ainda.<br>Use a aba <strong>Upload</strong> para enviar!</p>
-    </div>
-    {% endif %}
-  </div>
 
-  <!-- ══ Aba: Upload ══ -->
-  <div class="tab-panel" id="tab-upload">
-    <input type="file" id="fileInput" multiple>
+        <div class="results-count" id="resultsCount"></div>
 
-    <div class="upload-zone" id="dropZone">
-      <span class="upload-icon">📄</span>
-      <h2>Enviar Arquivos</h2>
-      <p>Arraste aqui ou clique para selecionar — múltiplos suportados</p>
-      <div class="upload-row">
-        <!-- SELECT real de pasta no lugar do chip de texto que não funcionava -->
-        <select class="folder-select" id="folderSelect" onclick="event.stopPropagation()">
-          <option value="geral">📂 geral</option>
-          {% for folder in folders %}
-          <option value="{{ folder }}">📂 {{ folder }}</option>
-          {% endfor %}
-        </select>
-        <label for="fileInput" class="btn btn-primary" onclick="event.stopPropagation()">
-          ＋ Selecionar Arquivos
-        </label>
-      </div>
-      <div id="upload-progress">
-        <div class="prog-wrap"><div class="prog-bar" id="progressBar"></div></div>
-        <div class="prog-lbl" id="progressLabel">Enviando…</div>
-      </div>
-    </div>
-    <!-- Bloco "Enviar Pasta Inteira" removido -->
-  </div>
-
-  <!-- ══ Aba: Pastas ══ -->
-  <div class="tab-panel" id="tab-pastas">
-    <div class="new-folder-row">
-      <input type="text" id="newFolderName" placeholder="Nome da nova pasta…"
-             onkeydown="if(event.key==='Enter')createFolder()">
-      <button class="btn btn-primary" onclick="createFolder()">＋ Criar Pasta</button>
-    </div>
-
-    <div class="folders-header">
-      <h3>📂 Pastas existentes</h3>
-      <span style="font-size:.75rem;color:var(--muted);font-family:'Space Mono',monospace">
-        {{ folders|length }} pasta{{ 's' if folders|length != 1 }}
-      </span>
-    </div>
-
-    <div class="folder-grid" id="folderGrid">
-      {% if folders %}
-        {% for folder in folders %}
-        <div class="folder-card" id="fc-{{ loop.index }}" onclick="filterByFolder('{{ folder }}')">
-          <div class="folder-card-left">
-            <span>📂</span>
-            <div>
-              <span>{{ folder }}</span>
-              <small>
-                {{ files | selectattr('folder','equalto',folder) | list | length }} arquivo(s)
-              </small>
+        {% if files %}
+        <div class="file-grid" id="fileGrid">
+          {% for f in files %}
+          <div
+            class="file-card"
+            data-name="{{ f.name|lower }}"
+            data-folder="{{ f.folder }}"
+          >
+            <div
+              class="file-preview"
+              onclick="openPreview('{{ f.name }}','{{ f.preview_type }}')"
+            >
+              {% if f.preview_type == 'image' %}<img
+                src="/preview/{{ f.name }}"
+                alt="{{ f.name }}"
+                loading="lazy"
+              />
+              {% elif f.preview_type == 'pdf' %}📄 {% elif f.category == 'video'
+              %}🎬 {% elif f.category == 'audio' %}🎵 {% elif f.category ==
+              'archive' %}🗜️ {% elif f.category == 'doc' %}📝 {% else %}📁{%
+              endif %} {% if f.preview_type %}
+              <div class="ov">👁 Ver</div>
+              {% endif %}
+            </div>
+            <div class="file-info">
+              <div class="file-name" title="{{ f.name }}">{{ f.name }}</div>
+              <div class="file-meta">
+                <span>{{ f.size }}</span>
+                <span class="fbadge">📂 {{ f.folder }}</span>
+                <span>⬇ {{ f.downloads }}</span>
+              </div>
+              <div class="file-actions">
+                <a href="/download/{{ f.name }}" class="btn btn-primary btn-sm"
+                  >⬇ Baixar</a
+                >
+                <button
+                  class="btn btn-ghost btn-sm"
+                  onclick="openShare('{{ f.name }}')"
+                >
+                  🔗
+                </button>
+                <button
+                  class="btn btn-ghost btn-sm"
+                  onclick="openMoveModal('{{ f.name }}','{{ f.folder }}')"
+                >
+                  ↗ Mover
+                </button>
+                <button
+                  class="btn btn-danger btn-sm"
+                  onclick="deleteFile('{{ f.name }}', this)"
+                >
+                  🗑
+                </button>
+              </div>
             </div>
           </div>
-          <div class="folder-actions" onclick="event.stopPropagation()">
-            <button class="icon-btn" title="Renomear" onclick="renameFolder('{{ folder }}')">✏️</button>
+          {% endfor %}
+        </div>
+        <div class="empty-state" id="noResults" style="display: none">
+          <span class="icon">🔍</span>
+          <p>Nenhum arquivo encontrado.</p>
+        </div>
+        {% else %}
+        <div class="empty-state">
+          <span class="icon">🦇</span>
+          <p>
+            Sem arquivos ainda.<br />Use a aba <strong>Upload</strong> para
+            enviar!
+          </p>
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- ══ Aba: Upload ══ -->
+      <div class="tab-panel" id="tab-upload">
+        <input type="file" id="fileInput" multiple />
+
+        <div class="upload-zone" id="dropZone">
+          <span class="upload-icon">📄</span>
+          <h2>Enviar Arquivos</h2>
+          <p>Arraste aqui ou clique para selecionar — múltiplos suportados</p>
+          <div class="upload-row">
+            <!-- SELECT real de pasta no lugar do chip de texto que não funcionava -->
+            <select
+              class="folder-select"
+              id="folderSelect"
+              onclick="event.stopPropagation()"
+            >
+              <option value="geral">📂 geral</option>
+              {% for folder in folders %}
+              <option value="{{ folder }}">📂 {{ folder }}</option>
+              {% endfor %}
+            </select>
+            <label
+              for="fileInput"
+              class="btn btn-primary"
+              onclick="event.stopPropagation()"
+            >
+              ＋ Selecionar Arquivos
+            </label>
+          </div>
+          <div id="upload-progress">
+            <div class="prog-wrap">
+              <div class="prog-bar" id="progressBar"></div>
+            </div>
+            <div class="prog-lbl" id="progressLabel">Enviando…</div>
           </div>
         </div>
-        {% endfor %}
-      {% else %}
-      <div style="color:var(--muted);font-size:.875rem;grid-column:1/-1">
-        Nenhuma pasta ainda. Crie uma acima ou faça upload com uma pasta definida.
+        <!-- Bloco "Enviar Pasta Inteira" removido -->
       </div>
-      {% endif %}
+
+      <!-- ══ Aba: Pastas ══ -->
+      <div class="tab-panel" id="tab-pastas">
+        <div class="new-folder-row">
+          <input
+            type="text"
+            id="newFolderName"
+            placeholder="Nome da nova pasta…"
+            onkeydown="if (event.key === 'Enter') createFolder();"
+          />
+          <button class="btn btn-primary" onclick="createFolder()">
+            ＋ Criar Pasta
+          </button>
+        </div>
+
+        <div class="folders-header">
+          <h3>📂 Pastas existentes</h3>
+          <span
+            style="
+              font-size: 0.75rem;
+              color: var(--muted);
+              font-family: &quot;Space Mono&quot;, monospace;
+            "
+          >
+            {{ folders|length }} pasta{{ 's' if folders|length != 1 }}
+          </span>
+        </div>
+
+        <div class="folder-grid" id="folderGrid">
+          {% if folders %} {% for folder in folders %}
+          <div
+            class="folder-card"
+            id="fc-{{ loop.index }}"
+            onclick="filterByFolder('{{ folder }}')"
+          >
+            <div class="folder-card-left">
+              <span>📂</span>
+              <div>
+                <span>{{ folder }}</span>
+                <small>
+                  {{ files | selectattr('folder','equalto',folder) | list |
+                  length }} arquivo(s)
+                </small>
+              </div>
+            </div>
+            <div class="folder-actions" onclick="event.stopPropagation()">
+              <button
+                class="icon-btn"
+                title="Renomear"
+                onclick="renameFolder('{{ folder }}')"
+              >
+                ✏️
+              </button>
+            </div>
+          </div>
+          {% endfor %} {% else %}
+          <div
+            style="color: var(--muted); font-size: 0.875rem; grid-column: 1/-1"
+          >
+            Nenhuma pasta ainda. Crie uma acima ou faça upload com uma pasta
+            definida.
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </main>
+
+    <!-- Modal: Preview -->
+    <div class="modal-bg" id="previewModal">
+      <div class="modal">
+        <button class="modal-close" onclick="closeModal('previewModal')">
+          ✕
+        </button>
+        <h3 id="previewTitle"></h3>
+        <div id="previewContent"></div>
+      </div>
     </div>
-  </div>
 
-</main>
-
-<!-- Modal: Preview -->
-<div class="modal-bg" id="previewModal">
-  <div class="modal">
-    <button class="modal-close" onclick="closeModal('previewModal')">✕</button>
-    <h3 id="previewTitle"></h3>
-    <div id="previewContent"></div>
-  </div>
-</div>
-
-<!-- Modal: Share -->
-<div class="modal-bg" id="shareModal">
-  <div class="modal">
-    <button class="modal-close" onclick="closeModal('shareModal')">✕</button>
-    <h3>🔗 Link de Compartilhamento</h3>
-    <p style="color:var(--muted);font-size:.8rem;margin-top:.2rem" id="shareFilename"></p>
-    <div class="share-form">
-      <select id="shareExpiry">
-        <option value="1">Expira em 1h</option>
-        <option value="6">Expira em 6h</option>
-        <option value="24" selected>Expira em 24h</option>
-        <option value="72">Expira em 3 dias</option>
-        <option value="168">Expira em 7 dias</option>
-      </select>
-      <button class="btn btn-primary btn-sm" onclick="generateShare()">Gerar Link</button>
+    <!-- Modal: Share -->
+    <div class="modal-bg" id="shareModal">
+      <div class="modal">
+        <button class="modal-close" onclick="closeModal('shareModal')">
+          ✕
+        </button>
+        <h3>🔗 Link de Compartilhamento</h3>
+        <p
+          style="color: var(--muted); font-size: 0.8rem; margin-top: 0.2rem"
+          id="shareFilename"
+        ></p>
+        <div class="share-form">
+          <select id="shareExpiry">
+            <option value="1">Expira em 1h</option>
+            <option value="6">Expira em 6h</option>
+            <option value="24" selected>Expira em 24h</option>
+            <option value="72">Expira em 3 dias</option>
+            <option value="168">Expira em 7 dias</option>
+          </select>
+          <button class="btn btn-primary btn-sm" onclick="generateShare()">
+            Gerar Link
+          </button>
+        </div>
+        <div class="share-result" id="shareResult"></div>
+        <button
+          class="btn btn-ghost btn-sm"
+          id="copyBtn"
+          style="display: none; margin-top: 0.5rem"
+          onclick="copyShare()"
+        >
+          📋 Copiar Link
+        </button>
+      </div>
     </div>
-    <div class="share-result" id="shareResult"></div>
-    <button class="btn btn-ghost btn-sm" id="copyBtn"
-            style="display:none;margin-top:.5rem" onclick="copyShare()">📋 Copiar Link</button>
-  </div>
-</div>
 
-<!-- Modal: Mover arquivo entre pastas -->
-<div class="modal-bg" id="moveModal">
-  <div class="modal" style="min-width:310px">
-    <button class="modal-close" onclick="closeModal('moveModal')">✕</button>
-    <h3>↗ Mover Arquivo</h3>
-    <p style="color:var(--muted);font-size:.8rem;margin-bottom:.9rem" id="moveModalInfo"></p>
-    <label style="display:block;font-size:.78rem;font-weight:700;color:var(--muted);margin-bottom:.4rem">
-      Mover para a pasta:
-    </label>
-    <select class="move-select" id="moveDestSelect"></select>
-    <div class="modal-actions">
-      <button class="btn btn-ghost btn-sm" onclick="closeModal('moveModal')">Cancelar</button>
-      <button class="btn btn-primary btn-sm" onclick="confirmMove()">Mover →</button>
+    <!-- Modal: Mover arquivo entre pastas -->
+    <div class="modal-bg" id="moveModal">
+      <div class="modal" style="min-width: 310px">
+        <button class="modal-close" onclick="closeModal('moveModal')">✕</button>
+        <h3>↗ Mover Arquivo</h3>
+        <p
+          style="color: var(--muted); font-size: 0.8rem; margin-bottom: 0.9rem"
+          id="moveModalInfo"
+        ></p>
+        <label
+          style="
+            display: block;
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: var(--muted);
+            margin-bottom: 0.4rem;
+          "
+        >
+          Mover para a pasta:
+        </label>
+        <select class="move-select" id="moveDestSelect"></select>
+        <div class="modal-actions">
+          <button
+            class="btn btn-ghost btn-sm"
+            onclick="closeModal('moveModal')"
+          >
+            Cancelar
+          </button>
+          <button class="btn btn-primary btn-sm" onclick="confirmMove()">
+            Mover →
+          </button>
+        </div>
+      </div>
     </div>
-  </div>
-</div>
 
-<div class="toast" id="toast"></div>
+    <div class="toast" id="toast"></div>
 
-<script>
-  let activeFolder = '';
-  let currentShareFile = '';
-  let moveFileData = { filename: '', srcFolder: '' };
+    <script>
+      let activeFolder = '';
+      let currentShareFile = '';
+      let moveFileData = { filename: '', srcFolder: '' };
 
-  // Pastas disponíveis injetadas pelo servidor
-  const allFolders = [{% for folder in folders %}"{{ folder }}"{% if not loop.last %},{% endif %}{% endfor %}];
+      // Pastas disponíveis injetadas pelo servidor
+      const allFolders = [{% for folder in folders %}"{{ folder }}"{% if not loop.last %},{% endif %}{% endfor %}];
 
-  function switchTab(name, btn) {
-    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-    btn.classList.add('active');
-    document.getElementById('tab-' + name).classList.add('active');
-  }
-
-  const dropZone  = document.getElementById('dropZone');
-  const fileInput = document.getElementById('fileInput');
-  ['dragenter','dragover'].forEach(e =>
-    dropZone.addEventListener(e, ev => { ev.preventDefault(); dropZone.classList.add('drag-over'); }));
-  ['dragleave','drop'].forEach(e =>
-    dropZone.addEventListener(e, ev => { ev.preventDefault(); dropZone.classList.remove('drag-over'); }));
-  dropZone.addEventListener('drop', ev => {
-    if (ev.dataTransfer.files.length) uploadFiles(ev.dataTransfer.files);
-  });
-  dropZone.addEventListener('click', ev => {
-    if (['SELECT','OPTION','LABEL','SPAN'].includes(ev.target.tagName)) return;
-    fileInput.click();
-  });
-  fileInput.addEventListener('change', () => {
-    if (fileInput.files.length) uploadFiles(fileInput.files);
-  });
-
-  function uploadFiles(files) {
-    const folder = document.getElementById('folderSelect').value || 'geral';
-    const fd = new FormData();
-    for (const f of files) fd.append('file', f);
-    fd.append('folder', folder);
-    sendWithProgress(fd, '/upload', 'progressBar', 'progressLabel', 'upload-progress');
-  }
-
-  function sendWithProgress(fd, url, barId, lblId, progId) {
-    const prog = document.getElementById(progId);
-    const bar  = document.getElementById(barId);
-    const lbl  = document.getElementById(lblId);
-    prog.style.display = 'block';
-    bar.style.width = '0%';
-    lbl.textContent = 'Enviando…';
-    const xhr = new XMLHttpRequest();
-    xhr.upload.addEventListener('progress', e => {
-      if (e.lengthComputable) {
-        const pct = Math.round(e.loaded / e.total * 100);
-        bar.style.width = pct + '%';
-        lbl.textContent = 'Enviando… ' + pct + '%';
+      function switchTab(name, btn) {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById('tab-' + name).classList.add('active');
       }
-    });
-    xhr.addEventListener('load', () => {
-      bar.style.width = '100%';
-      lbl.textContent = 'Concluído!';
-      showToast('✅ Upload concluído!', 'success');
-      setTimeout(() => { prog.style.display = 'none'; location.reload(); }, 1000);
-    });
-    xhr.addEventListener('error', () => {
-      showToast('❌ Erro no upload', 'error');
-      prog.style.display = 'none';
-    });
-    xhr.open('POST', url);
-    xhr.send(fd);
-  }
 
-  function filterFiles(query) {
-    const q = (query || '').toLowerCase().trim();
-    const cards = document.querySelectorAll('.file-card');
-    let visible = 0;
-    cards.forEach(card => {
-      const ok = (!q || card.dataset.name.includes(q)) &&
-                 (!activeFolder || card.dataset.folder === activeFolder);
-      card.classList.toggle('hidden', !ok);
-      if (ok) visible++;
-    });
-    const total = cards.length;
-    const ce = document.getElementById('resultsCount');
-    if (ce) ce.textContent = (q || activeFolder)
-      ? visible + ' de ' + total + ' arquivo' + (total !== 1 ? 's' : '') : '';
-    const nr = document.getElementById('noResults');
-    if (nr) nr.style.display = visible === 0 ? 'block' : 'none';
-  }
-
-  function setFolder(btn, folder) {
-    activeFolder = folder;
-    document.querySelectorAll('.ftab').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    filterFiles(document.getElementById('searchInput').value);
-  }
-
-  function filterByFolder(folder) {
-    switchTab('arquivos', document.querySelector('.tab'));
-    activeFolder = folder;
-    const tab = document.querySelector('.ftab[data-folder="' + folder + '"]');
-    if (tab) {
-      document.querySelectorAll('.ftab').forEach(b => b.classList.remove('active'));
-      tab.classList.add('active');
-    }
-    filterFiles('');
-  }
-
-  function createFolder() {
-    const name = document.getElementById('newFolderName').value.trim();
-    if (!name) { showToast('Digite um nome para a pasta', 'error'); return; }
-    fetch('/folder/create', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({name})
-    }).then(r => r.json()).then(data => {
-      if (data.success) {
-        showToast('📂 Pasta "' + name + '" criada!', 'success');
-        document.getElementById('newFolderName').value = '';
-        setTimeout(() => location.reload(), 800);
-      } else {
-        showToast('❌ ' + (data.error || 'Erro'), 'error');
-      }
-    }).catch(() => showToast('❌ Erro de conexão', 'error'));
-  }
-
-  function renameFolder(oldName) {
-    const newName = prompt('Novo nome para a pasta "' + oldName + '":', oldName);
-    if (!newName || newName === oldName) return;
-    fetch('/folder/rename', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({old: oldName, new: newName})
-    }).then(r => r.json()).then(data => {
-      if (data.success) {
-        showToast('✅ Pasta renomeada!', 'success');
-        setTimeout(() => location.reload(), 800);
-      } else {
-        showToast('❌ ' + (data.error || 'Erro'), 'error');
-      }
-    }).catch(() => showToast('❌ Erro de conexão', 'error'));
-  }
-
-  function deleteFile(filename, btn) {
-    if (!confirm('Apagar "' + filename + '"?')) return;
-    fetch('/delete/' + encodeURIComponent(filename), {method: 'POST'})
-      .then(r => r.json())
-      .then(data => {
-        if (data.success) {
-          showToast('🗑 Arquivo apagado', 'success');
-          const card = btn.closest('.file-card');
-          if (card) card.remove();
-        } else {
-          showToast('❌ ' + (data.error || 'Erro'), 'error');
-        }
-      }).catch(() => showToast('❌ Erro de conexão', 'error'));
-  }
-
-  /* ── Mover arquivo entre pastas ── */
-  function openMoveModal(filename, srcFolder) {
-    moveFileData = { filename, srcFolder };
-    document.getElementById('moveModalInfo').textContent =
-      '📄 ' + filename + '  —  atual: 📂 ' + srcFolder;
-
-    const sel = document.getElementById('moveDestSelect');
-    sel.innerHTML = '';
-
-    // Adiciona "geral" se não for a pasta atual
-    if (srcFolder !== 'geral') {
-      const opt = document.createElement('option');
-      opt.value = 'geral'; opt.textContent = '📂 geral';
-      sel.appendChild(opt);
-    }
-    // Adiciona demais pastas exceto a atual
-    allFolders.forEach(f => {
-      if (f === srcFolder) return;
-      const opt = document.createElement('option');
-      opt.value = f; opt.textContent = '📂 ' + f;
-      sel.appendChild(opt);
-    });
-
-    document.getElementById('moveModal').classList.add('open');
-  }
-
-  function confirmMove() {
-    const dest = document.getElementById('moveDestSelect').value;
-    if (!dest) { showToast('Selecione uma pasta de destino', 'error'); return; }
-    fetch('/file/move', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({
-        filename: moveFileData.filename,
-        src_folder: moveFileData.srcFolder,
-        dst_folder: dest
-      })
-    }).then(r => r.json()).then(data => {
-      if (data.success) {
-        showToast('✅ Arquivo movido para 📂 ' + dest, 'success');
-        closeModal('moveModal');
-        setTimeout(() => location.reload(), 800);
-      } else {
-        showToast('❌ ' + (data.error || 'Erro'), 'error');
-      }
-    }).catch(() => showToast('❌ Erro de conexão', 'error'));
-  }
-
-  function openPreview(name, type) {
-    if (!type) return;
-    document.getElementById('previewTitle').textContent = name;
-    const c = document.getElementById('previewContent');
-    if (type === 'image')
-      c.innerHTML = '<img src="/preview/' + encodeURIComponent(name) + '" alt="' + name + '">';
-    else if (type === 'pdf')
-      c.innerHTML = '<iframe src="/preview/' + encodeURIComponent(name) + '"></iframe>';
-    document.getElementById('previewModal').classList.add('open');
-  }
-
-  function openShare(name) {
-    currentShareFile = name;
-    document.getElementById('shareFilename').textContent = name;
-    document.getElementById('shareResult').style.display = 'none';
-    document.getElementById('copyBtn').style.display = 'none';
-    document.getElementById('shareModal').classList.add('open');
-  }
-  function generateShare() {
-    const hours = document.getElementById('shareExpiry').value;
-    const fd = new FormData(); fd.append('hours', hours);
-    fetch('/share/create/' + encodeURIComponent(currentShareFile), {method:'POST', body:fd})
-      .then(r => r.json()).then(data => {
-        const res = document.getElementById('shareResult');
-        res.textContent = data.link; res.style.display = 'block';
-        document.getElementById('copyBtn').style.display = 'inline-flex';
+      const dropZone  = document.getElementById('dropZone');
+      const fileInput = document.getElementById('fileInput');
+      ['dragenter','dragover'].forEach(e =>
+        dropZone.addEventListener(e, ev => { ev.preventDefault(); dropZone.classList.add('drag-over'); }));
+      ['dragleave','drop'].forEach(e =>
+        dropZone.addEventListener(e, ev => { ev.preventDefault(); dropZone.classList.remove('drag-over'); }));
+      dropZone.addEventListener('drop', ev => {
+        if (ev.dataTransfer.files.length) uploadFiles(ev.dataTransfer.files);
       });
-  }
-  function copyShare() {
-    navigator.clipboard.writeText(document.getElementById('shareResult').textContent)
-      .then(() => showToast('📋 Copiado!', 'success'));
-  }
+      dropZone.addEventListener('click', ev => {
+        if (['SELECT','OPTION','LABEL','SPAN'].includes(ev.target.tagName)) return;
+        fileInput.click();
+      });
+      fileInput.addEventListener('change', () => {
+        if (fileInput.files.length) uploadFiles(fileInput.files);
+      });
 
-  function closeModal(id) {
-    document.getElementById(id).classList.remove('open');
-    if (id === 'previewModal') document.getElementById('previewContent').innerHTML = '';
-  }
-  document.querySelectorAll('.modal-bg').forEach(bg =>
-    bg.addEventListener('click', e => { if (e.target === bg) bg.classList.remove('open'); }));
+      function uploadFiles(files) {
+        const folder = document.getElementById('folderSelect').value || 'geral';
+        const fd = new FormData();
+        for (const f of files) fd.append('file', f);
+        fd.append('folder', folder);
+        sendWithProgress(fd, '/upload', 'progressBar', 'progressLabel', 'upload-progress');
+      }
 
-  function showToast(msg, type) {
-    const t = document.getElementById('toast');
-    t.textContent = msg; t.className = 'toast show ' + (type||'');
-    setTimeout(() => t.className = 'toast', 3000);
-  }
-</script>
-</body>
+      function sendWithProgress(fd, url, barId, lblId, progId) {
+        const prog = document.getElementById(progId);
+        const bar  = document.getElementById(barId);
+        const lbl  = document.getElementById(lblId);
+        prog.style.display = 'block';
+        bar.style.width = '0%';
+        lbl.textContent = 'Enviando…';
+        const xhr = new XMLHttpRequest();
+        xhr.upload.addEventListener('progress', e => {
+          if (e.lengthComputable) {
+            const pct = Math.round(e.loaded / e.total * 100);
+            bar.style.width = pct + '%';
+            lbl.textContent = 'Enviando… ' + pct + '%';
+          }
+        });
+        xhr.addEventListener('load', () => {
+          bar.style.width = '100%';
+          lbl.textContent = 'Concluído!';
+          showToast('✅ Upload concluído!', 'success');
+          setTimeout(() => { prog.style.display = 'none'; location.reload(); }, 1000);
+        });
+        xhr.addEventListener('error', () => {
+          showToast('❌ Erro no upload', 'error');
+          prog.style.display = 'none';
+        });
+        xhr.open('POST', url);
+        xhr.send(fd);
+      }
+
+      function filterFiles(query) {
+        const q = (query || '').toLowerCase().trim();
+        const cards = document.querySelectorAll('.file-card');
+        let visible = 0;
+        cards.forEach(card => {
+          const ok = (!q || card.dataset.name.includes(q)) &&
+                     (!activeFolder || card.dataset.folder === activeFolder);
+          card.classList.toggle('hidden', !ok);
+          if (ok) visible++;
+        });
+        const total = cards.length;
+        const ce = document.getElementById('resultsCount');
+        if (ce) ce.textContent = (q || activeFolder)
+          ? visible + ' de ' + total + ' arquivo' + (total !== 1 ? 's' : '') : '';
+        const nr = document.getElementById('noResults');
+        if (nr) nr.style.display = visible === 0 ? 'block' : 'none';
+      }
+
+      function setFolder(btn, folder) {
+        activeFolder = folder;
+        document.querySelectorAll('.ftab').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        filterFiles(document.getElementById('searchInput').value);
+      }
+
+      function filterByFolder(folder) {
+        switchTab('arquivos', document.querySelector('.tab'));
+        activeFolder = folder;
+        const tab = document.querySelector('.ftab[data-folder="' + folder + '"]');
+        if (tab) {
+          document.querySelectorAll('.ftab').forEach(b => b.classList.remove('active'));
+          tab.classList.add('active');
+        }
+        filterFiles('');
+      }
+
+      function createFolder() {
+        const name = document.getElementById('newFolderName').value.trim();
+        if (!name) { showToast('Digite um nome para a pasta', 'error'); return; }
+        fetch('/folder/create', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({name})
+        }).then(r => r.json()).then(data => {
+          if (data.success) {
+            showToast('📂 Pasta "' + name + '" criada!', 'success');
+            document.getElementById('newFolderName').value = '';
+            setTimeout(() => location.reload(), 800);
+          } else {
+            showToast('❌ ' + (data.error || 'Erro'), 'error');
+          }
+        }).catch(() => showToast('❌ Erro de conexão', 'error'));
+      }
+
+      function renameFolder(oldName) {
+        const newName = prompt('Novo nome para a pasta "' + oldName + '":', oldName);
+        if (!newName || newName === oldName) return;
+        fetch('/folder/rename', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({old: oldName, new: newName})
+        }).then(r => r.json()).then(data => {
+          if (data.success) {
+            showToast('✅ Pasta renomeada!', 'success');
+            setTimeout(() => location.reload(), 800);
+          } else {
+            showToast('❌ ' + (data.error || 'Erro'), 'error');
+          }
+        }).catch(() => showToast('❌ Erro de conexão', 'error'));
+      }
+
+      function deleteFile(filename, btn) {
+        if (!confirm('Apagar "' + filename + '"?')) return;
+        fetch('/delete/' + encodeURIComponent(filename), {method: 'POST'})
+          .then(r => r.json())
+          .then(data => {
+            if (data.success) {
+              showToast('🗑 Arquivo apagado', 'success');
+              const card = btn.closest('.file-card');
+              if (card) card.remove();
+            } else {
+              showToast('❌ ' + (data.error || 'Erro'), 'error');
+            }
+          }).catch(() => showToast('❌ Erro de conexão', 'error'));
+      }
+
+      /* ── Mover arquivo entre pastas ── */
+      function openMoveModal(filename, srcFolder) {
+        moveFileData = { filename, srcFolder };
+        document.getElementById('moveModalInfo').textContent =
+          '📄 ' + filename + '  —  atual: 📂 ' + srcFolder;
+
+        const sel = document.getElementById('moveDestSelect');
+        sel.innerHTML = '';
+
+        // Adiciona "geral" se não for a pasta atual
+        if (srcFolder !== 'geral') {
+          const opt = document.createElement('option');
+          opt.value = 'geral'; opt.textContent = '📂 geral';
+          sel.appendChild(opt);
+        }
+        // Adiciona demais pastas exceto a atual
+        allFolders.forEach(f => {
+          if (f === srcFolder) return;
+          const opt = document.createElement('option');
+          opt.value = f; opt.textContent = '📂 ' + f;
+          sel.appendChild(opt);
+        });
+
+        document.getElementById('moveModal').classList.add('open');
+      }
+
+      function confirmMove() {
+        const dest = document.getElementById('moveDestSelect').value;
+        if (!dest) { showToast('Selecione uma pasta de destino', 'error'); return; }
+        fetch('/file/move', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({
+            filename: moveFileData.filename,
+            src_folder: moveFileData.srcFolder,
+            dst_folder: dest
+          })
+        }).then(r => r.json()).then(data => {
+          if (data.success) {
+            showToast('✅ Arquivo movido para 📂 ' + dest, 'success');
+            closeModal('moveModal');
+            setTimeout(() => location.reload(), 800);
+          } else {
+            showToast('❌ ' + (data.error || 'Erro'), 'error');
+          }
+        }).catch(() => showToast('❌ Erro de conexão', 'error'));
+      }
+
+      function openPreview(name, type) {
+        if (!type) return;
+        document.getElementById('previewTitle').textContent = name;
+        const c = document.getElementById('previewContent');
+        if (type === 'image')
+          c.innerHTML = '<img src="/preview/' + encodeURIComponent(name) + '" alt="' + name + '">';
+        else if (type === 'pdf')
+          c.innerHTML = '<iframe src="/preview/' + encodeURIComponent(name) + '"></iframe>';
+        document.getElementById('previewModal').classList.add('open');
+      }
+
+      function openShare(name) {
+        currentShareFile = name;
+        document.getElementById('shareFilename').textContent = name;
+        document.getElementById('shareResult').style.display = 'none';
+        document.getElementById('copyBtn').style.display = 'none';
+        document.getElementById('shareModal').classList.add('open');
+      }
+      function generateShare() {
+        const hours = document.getElementById('shareExpiry').value;
+        const fd = new FormData(); fd.append('hours', hours);
+        fetch('/share/create/' + encodeURIComponent(currentShareFile), {method:'POST', body:fd})
+          .then(r => r.json()).then(data => {
+            const res = document.getElementById('shareResult');
+            res.textContent = data.link; res.style.display = 'block';
+            document.getElementById('copyBtn').style.display = 'inline-flex';
+          });
+      }
+      function copyShare() {
+        navigator.clipboard.writeText(document.getElementById('shareResult').textContent)
+          .then(() => showToast('📋 Copiado!', 'success'));
+      }
+
+      function closeModal(id) {
+        document.getElementById(id).classList.remove('open');
+        if (id === 'previewModal') document.getElementById('previewContent').innerHTML = '';
+      }
+      document.querySelectorAll('.modal-bg').forEach(bg =>
+        bg.addEventListener('click', e => { if (e.target === bg) bg.classList.remove('open'); }));
+
+      function showToast(msg, type) {
+        const t = document.getElementById('toast');
+        t.textContent = msg; t.className = 'toast show ' + (type||'');
+        setTimeout(() => t.className = 'toast', 3000);
+      }
+    </script>
+  </body>
 </html>
