@@ -1,231 +1,534 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VOID CLOUD 🦇 - Upload/Download</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"> 
-    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
-    <style>
-        body {
-            background: linear-gradient(135deg, #0d0d0d 0%, #2d1b3d 50%, #4a0e4e 100%);
-            color: #ffffff;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            min-height: 100vh;
-            margin: 0;
-            overflow-x: hidden;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VOID CLOUD 🦇</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #111118;
+    --surface2: #1a1a24;
+    --border: #2a2a3a;
+    --accent: #7c3aed;
+    --accent2: #a855f7;
+    --accent-glow: rgba(124,58,237,0.25);
+    --text: #e8e8f0;
+    --muted: #6b6b80;
+    --danger: #ef4444;
+    --success: #22c55e;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+  /* grid bg */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image:
+      linear-gradient(rgba(124,58,237,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(124,58,237,0.04) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
 
-        .glass-container {
-            backdrop-filter: blur(20px);
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 20px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.37);
-            padding: 2rem;
-            margin: 2rem auto;
-            max-width: 800px;
-            transition: all 0.3s ease;
-        }
+  header {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(10,10,15,0.85);
+    backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 2rem;
+    display: flex; align-items: center; justify-content: space-between;
+    height: 64px;
+  }
+  .logo {
+    font-size: 1.4rem; font-weight: 800; letter-spacing: -0.5px;
+    background: linear-gradient(135deg, #a855f7, #7c3aed);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .logo span { font-family: 'Space Mono', monospace; font-size: 1.1rem; }
+  header nav a {
+    color: var(--muted); text-decoration: none; font-size: 0.85rem;
+    padding: 0.4rem 0.8rem; border-radius: 6px;
+    transition: all 0.2s;
+  }
+  header nav a:hover { color: var(--text); background: var(--surface2); }
 
-        .glass-container:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 12px 40px rgba(156, 39, 176, 0.3);
-        }
+  main { position: relative; z-index: 1; max-width: 1100px; margin: 0 auto; padding: 2rem 1.5rem; }
 
-        /* Títulos com gradiente roxo e efeito glow */
-        h1 {
-            font-size: 3rem;
-            font-weight: bold;
-            background: linear-gradient(45deg, #9c27b0, #e91e63);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            text-align: center;
-            margin-bottom: 1rem;
-            text-shadow: 0 0 20px rgba(81, 27, 112, 0.5);
-            animation: glow 2s ease-in-out infinite alternate;
-        }
+  /* Upload zone */
+  .upload-zone {
+    border: 2px dashed var(--border);
+    border-radius: 16px;
+    padding: 3rem 2rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s;
+    background: var(--surface);
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 2.5rem;
+  }
+  .upload-zone::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse at 50% 0%, var(--accent-glow), transparent 70%);
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  .upload-zone.drag-over,
+  .upload-zone:hover {
+    border-color: var(--accent);
+    box-shadow: 0 0 30px var(--accent-glow);
+  }
+  .upload-zone.drag-over::before,
+  .upload-zone:hover::before { opacity: 1; }
+  .upload-icon { font-size: 3rem; margin-bottom: 1rem; display: block; }
+  .upload-zone h2 { font-size: 1.2rem; font-weight: 700; margin-bottom: 0.5rem; }
+  .upload-zone p { color: var(--muted); font-size: 0.875rem; }
+  .upload-zone input[type="file"] { display: none; }
 
-        @keyframes glow {
-            from { text-shadow: 0 0 20px rgba(92, 10, 168, 0.5); }
-            to { text-shadow: 0 0 30px rgba(156, 39, 176, 0.8); }
-        }
+  /* Folder selector */
+  .upload-meta {
+    display: flex; gap: 1rem; margin-top: 1.5rem; justify-content: center; flex-wrap: wrap;
+  }
+  .upload-meta input, .upload-meta select {
+    background: var(--surface2); border: 1px solid var(--border);
+    color: var(--text); padding: 0.5rem 1rem; border-radius: 8px;
+    font-family: 'Syne', sans-serif; font-size: 0.875rem;
+    outline: none; transition: border-color 0.2s;
+  }
+  .upload-meta input:focus, .upload-meta select:focus { border-color: var(--accent); }
 
-        h5 {
-            color: #ffffff;
-            font-weight: 600;
-            margin-bottom: 1.5rem;
-        }
+  .btn {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    padding: 0.6rem 1.4rem; border-radius: 8px; border: none;
+    font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.875rem;
+    cursor: pointer; transition: all 0.2s; text-decoration: none;
+  }
+  .btn-primary {
+    background: var(--accent); color: #fff;
+    box-shadow: 0 0 20px var(--accent-glow);
+  }
+  .btn-primary:hover { background: var(--accent2); transform: translateY(-1px); }
+  .btn-ghost {
+    background: transparent; color: var(--muted);
+    border: 1px solid var(--border);
+  }
+  .btn-ghost:hover { color: var(--text); border-color: var(--accent); }
+  .btn-danger { background: #450a0a; color: var(--danger); border: 1px solid #7f1d1d; }
+  .btn-danger:hover { background: #7f1d1d; }
 
-        .card {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: px;
-            backdrop-filter: blur(10px);
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-            transition: all 0.3s ease;
-        }
+  /* Progress */
+  #upload-progress { display: none; margin-top: 1.5rem; }
+  .progress-bar-wrap {
+    background: var(--surface2); border-radius: 99px; height: 8px;
+    overflow: hidden; margin-bottom: 0.5rem;
+  }
+  .progress-bar {
+    height: 100%; width: 0%; border-radius: 99px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    transition: width 0.2s;
+  }
+  .progress-label { font-size: 0.8rem; color: var(--muted); font-family: 'Space Mono', monospace; }
 
-        .card:hover {
-            transform: scale(1.02);
-            box-shadow: 0 8px 30px rgba(156, 39, 176, 0.4);
-        }
+  /* Toolbar */
+  .toolbar {
+    display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;
+    margin-bottom: 1.5rem;
+  }
+  .search-wrap {
+    flex: 1; min-width: 200px; position: relative;
+  }
+  .search-wrap input {
+    width: 100%;
+    background: var(--surface); border: 1px solid var(--border);
+    color: var(--text); padding: 0.6rem 1rem 0.6rem 2.5rem;
+    border-radius: 8px; font-family: 'Syne', sans-serif; font-size: 0.875rem;
+    outline: none; transition: border-color 0.2s;
+  }
+  .search-wrap input:focus { border-color: var(--accent); }
+  .search-wrap::before {
+    content: '⌕'; position: absolute; left: 0.8rem; top: 50%;
+    transform: translateY(-50%); color: var(--muted); font-size: 1.1rem;
+  }
+  .folder-tabs { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+  .folder-tab {
+    padding: 0.4rem 1rem; border-radius: 99px; border: 1px solid var(--border);
+    background: transparent; color: var(--muted); cursor: pointer;
+    font-family: 'Syne', sans-serif; font-size: 0.8rem; font-weight: 700;
+    text-decoration: none; transition: all 0.2s;
+  }
+  .folder-tab:hover, .folder-tab.active {
+    background: var(--accent); color: #fff; border-color: var(--accent);
+  }
 
-        .card-header {
-            background: rgba(74, 14, 78, 0.8);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            color: #ffffff;
-            font-weight: bold;
-        }
+  /* File grid */
+  .file-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 1rem;
+  }
+  .file-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; overflow: hidden;
+    transition: all 0.2s; position: relative;
+  }
+  .file-card:hover {
+    border-color: var(--accent);
+    box-shadow: 0 4px 20px var(--accent-glow);
+    transform: translateY(-2px);
+  }
+  .file-preview {
+    height: 140px; background: var(--surface2);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 3rem; overflow: hidden; cursor: pointer;
+    position: relative;
+  }
+  .file-preview img {
+    width: 100%; height: 100%; object-fit: cover;
+  }
+  .file-preview .preview-overlay {
+    position: absolute; inset: 0;
+    background: rgba(0,0,0,0.6);
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0; transition: opacity 0.2s;
+    font-size: 1rem; font-weight: 700; color: #fff;
+  }
+  .file-card:hover .preview-overlay { opacity: 1; }
 
-        .card-body {
-            padding: 2rem;
-        }
+  .file-info { padding: 1rem; }
+  .file-name {
+    font-weight: 700; font-size: 0.875rem;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    margin-bottom: 0.3rem;
+  }
+  .file-meta {
+    display: flex; gap: 0.5rem; align-items: center;
+    font-size: 0.75rem; color: var(--muted); font-family: 'Space Mono', monospace;
+    margin-bottom: 0.8rem; flex-wrap: wrap;
+  }
+  .folder-badge {
+    background: var(--surface2); border: 1px solid var(--border);
+    padding: 0.1rem 0.5rem; border-radius: 99px; font-size: 0.7rem;
+  }
+  .file-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+  .file-actions .btn { padding: 0.35rem 0.7rem; font-size: 0.75rem; }
 
-        .form-control {
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 15px;
-            color: #f5f5f5;
-            padding: 1.20rem;
-            transition: all 0.3s ease;
-        }
+  /* Modal */
+  .modal-bg {
+    display: none; position: fixed; inset: 0; z-index: 999;
+    background: rgba(0,0,0,0.85); backdrop-filter: blur(8px);
+    align-items: center; justify-content: center;
+  }
+  .modal-bg.open { display: flex; }
+  .modal {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 16px; padding: 1.5rem; max-width: 90vw; max-height: 90vh;
+    overflow: auto; position: relative; min-width: 300px;
+  }
+  .modal h3 { margin-bottom: 1rem; font-size: 1rem; word-break: break-all; }
+  .modal img { max-width: 100%; max-height: 60vh; border-radius: 8px; display: block; }
+  .modal iframe { width: 70vw; height: 70vh; border: none; border-radius: 8px; }
+  .modal-close {
+    position: absolute; top: 1rem; right: 1rem;
+    background: var(--surface2); border: 1px solid var(--border);
+    color: var(--text); width: 32px; height: 32px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; font-size: 1rem; transition: all 0.2s;
+  }
+  .modal-close:hover { background: var(--danger); border-color: var(--danger); }
 
-        .form-control:focus {
-            background: rgba(255, 255, 255, 0.2);
-            border-color: #9c27b0;
-            box-shadow: 0 0 10px rgba(156, 39, 176, 0.5);
-            color: #ffffff;
-        }
+  /* Share modal */
+  .share-form { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 1rem; }
+  .share-form select {
+    background: var(--surface2); border: 1px solid var(--border);
+    color: var(--text); padding: 0.5rem; border-radius: 8px;
+    font-family: 'Syne', sans-serif;
+  }
+  .share-result {
+    margin-top: 1rem; background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 8px; padding: 0.8rem; font-family: 'Space Mono', monospace;
+    font-size: 0.8rem; word-break: break-all; display: none;
+  }
+  .copy-btn { margin-top: 0.5rem; }
 
-        .form-label {
-            color: #ffffff;
-            font-weight: 500;
-            margin-bottom: 0.5rem;
-        }
+  .empty-state {
+    text-align: center; padding: 4rem 2rem;
+    color: var(--muted);
+  }
+  .empty-state .icon { font-size: 4rem; display: block; margin-bottom: 1rem; opacity: 0.4; }
+  .empty-state p { font-size: 0.95rem; }
 
-        .btn-primary {
-            background: linear-gradient(45deg, #9c27b0, #e91e63);
-            border: none;
-            border-radius: 25px;
-            padding: 0.75rem 2rem;
-            font-weight: bold;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(156, 39, 176, 0.3);
-        }
+  .toast {
+    position: fixed; bottom: 2rem; right: 2rem; z-index: 9999;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 10px; padding: 0.8rem 1.2rem;
+    font-size: 0.875rem; transform: translateY(100px); opacity: 0;
+    transition: all 0.3s; max-width: 300px;
+  }
+  .toast.show { transform: translateY(0); opacity: 1; }
+  .toast.success { border-color: var(--success); }
+  .toast.error { border-color: var(--danger); }
 
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(156, 39, 176, 0.5);
-            background: linear-gradient(45deg, #7b1fa2, #c2185b);
-        }
-
-        .btn-success {
-            background: linear-gradient(45deg, #4a0e4e, #3a0144);
-            border: none;
-            border-radius: 20px;
-            padding: 0.5rem 1rem;
-            font-size: 0.9rem;
-            transition: all 0.3s ease;
-            box-shadow: 0 2px 10px rgba(74, 14, 78, 0.3);
-        }
-
-        .btn-success:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 4px 15px rgba(74, 14, 78, 0.5);
-            background: linear-gradient(45deg, #2d1b3d, #7b1fa2);
-        }
-
-        .list-group-item {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
-            margin-bottom: 0.5rem;
-            color: #ffffff;
-            transition: all 0.3s ease;
-        }
-
-        .list-group-item:hover {
-            background: rgba(255, 255, 255, 0.1);
-            transform: translateX(5px);
-        }
-
-        .list-group-item a {
-            color: #9c27b0;
-            text-decoration: none;
-            font-weight: 500;
-        }
-
-        .list-group-item a:hover {
-            color: #e91e63;
-            text-decoration: underline;
-        }
-
-        .text-muted {
-            color: #b0b0b0 !important;
-        }
-
-        .card-header h5::before {
-            content: "\f093"; /* Ícone de upload/download do Font Awesome */
-            font-family: "Font Awesome 6 Free";
-            margin-right: 0.5rem;
-            color: #9c27b0;
-        }
-
-        /* Responsividade */
-        @media (max-width: 768px) {
-            h1 { font-size: 2rem; }
-            .glass-container { padding: 1rem; margin: 1rem; }
-        }
-    </style>
+  @media (max-width: 600px) {
+    .file-grid { grid-template-columns: 1fr; }
+    .modal iframe { width: 95vw; height: 50vh; }
+  }
+</style>
 </head>
 <body>
-    <div class="glass-container">
-        <h1>VOID CLOUD 🦇</h1> 
-        <p class="text-center text-muted mb-4">Void Cloud - Servidor de Upload e Download</p>
-        <div class="text-center mb-4">
-            <a href="/admin/login" class="btn btn-primary"><i class="fas fa-sign-in-alt"></i> Login Admin</a>
-        </div>
 
-        <!-- Formulário de Upload -->
-        <div class="card mb-4">
-            <div class="card-header">
-                <h5>Fazer Upload de Arquivos</h5>
-            </div>
-            <div class="card-body">
-                <form action="/upload" method="post" enctype="multipart/form-data">
-                    <div class="mb-3">
-                        <label for="file" class="form-label"><i class="fas fa-file-upload"></i> Selecione o arquivo:</label>
-                        <input type="file" class="form-control" id="file" name="file" required>
-                    </div>
-                    <button type="submit" class="btn btn-primary"><i class="fas fa-upload"></i> Enviar Arquivo</button>
-                </form>
-            </div>
-        </div>
+<header>
+  <div class="logo">VOID<span>🦇</span>CLOUD</div>
+  <nav>
+    <a href="/admin/login">Admin</a>
+  </nav>
+</header>
 
-        <!-- Lista de Arquivos para Download -->
-        <div class="card">
-            <div class="card-header">
-                <h5>Arquivos Disponíveis para Download</h5>
-            </div>
-            <div class="card-body">
-                {% if files %}
-                    <ul class="list-group">
-                        {% for file in files %}
-                            <li class="list-group-item d-flex justify-content-between align-items-center">
-                                <span><i class="fas fa-file"></i> {{ file }}</span>
-                                <a href="/download/{{ file }}" class="btn btn-success btn-sm"><i class="fas fa-download"></i> Baixar</a>
-                            </li>
-                        {% endfor %}
-                    </ul>
-                {% else %}
-                    <p class="text-muted"><i class="fas fa-folder-open"></i> Nenhum arquivo disponível.</p>
-                {% endif %}
-            </div>
-        </div>
+<main>
+  <!-- Upload Zone -->
+  <div class="upload-zone" id="dropZone">
+    <span class="upload-icon">🦇</span>
+    <h2>Arraste arquivos aqui</h2>
+    <p>ou clique para selecionar — múltiplos arquivos suportados</p>
+    <input type="file" id="fileInput" multiple>
+    <div class="upload-meta">
+      <input type="text" id="folderInput" placeholder="Pasta (ex: projetos)" value="{{ current_folder or '' }}">
+      <button class="btn btn-primary" onclick="document.getElementById('fileInput').click()">
+        ＋ Selecionar Arquivos
+      </button>
     </div>
+    <div id="upload-progress">
+      <div class="progress-bar-wrap">
+        <div class="progress-bar" id="progressBar"></div>
+      </div>
+      <div class="progress-label" id="progressLabel">Enviando…</div>
+    </div>
+  </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- Toolbar -->
+  <div class="toolbar">
+    <div class="search-wrap">
+      <input type="text" id="searchInput" placeholder="Buscar arquivos…"
+             value="{{ search }}"
+             oninput="debounceSearch(this.value)">
+    </div>
+    <div class="folder-tabs">
+      <a href="/" class="folder-tab {% if not current_folder %}active{% endif %}">Todos</a>
+      {% for folder in folders %}
+      <a href="/?folder={{ folder }}" class="folder-tab {% if current_folder == folder %}active{% endif %}">{{ folder }}</a>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- File Grid -->
+  {% if files %}
+  <div class="file-grid" id="fileGrid">
+    {% for f in files %}
+    <div class="file-card" data-name="{{ f.name }}">
+      <div class="file-preview" onclick="openPreview('{{ f.name }}', '{{ f.preview_type }}')">
+        {% if f.preview_type == 'image' %}
+          <img src="/preview/{{ f.name }}" alt="{{ f.name }}" loading="lazy">
+        {% elif f.preview_type == 'pdf' %}
+          📄
+        {% elif f.category == 'video' %}🎬
+        {% elif f.category == 'audio' %}🎵
+        {% elif f.category == 'archive' %}🗜️
+        {% elif f.category == 'doc' %}📝
+        {% else %}📁{% endif %}
+        {% if f.preview_type %}
+        <div class="preview-overlay">👁 Visualizar</div>
+        {% endif %}
+      </div>
+      <div class="file-info">
+        <div class="file-name" title="{{ f.name }}">{{ f.name }}</div>
+        <div class="file-meta">
+          <span>{{ f.size }}</span>
+          <span class="folder-badge">📂 {{ f.folder }}</span>
+          <span>⬇ {{ f.downloads }}</span>
+        </div>
+        <div class="file-actions">
+          <a href="/download/{{ f.name }}" class="btn btn-primary">⬇ Baixar</a>
+          <button class="btn btn-ghost" onclick="openShare('{{ f.name }}')">🔗 Link</button>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <span class="icon">🦇</span>
+    <p>Nenhum arquivo encontrado.<br>Faça upload de algo acima!</p>
+  </div>
+  {% endif %}
+</main>
+
+<!-- Preview Modal -->
+<div class="modal-bg" id="previewModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('previewModal')">✕</button>
+    <h3 id="previewTitle"></h3>
+    <div id="previewContent"></div>
+  </div>
+</div>
+
+<!-- Share Modal -->
+<div class="modal-bg" id="shareModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('shareModal')">✕</button>
+    <h3>🔗 Link de Compartilhamento</h3>
+    <p style="color:var(--muted);font-size:0.85rem;margin-top:0.3rem" id="shareFilename"></p>
+    <div class="share-form">
+      <select id="shareExpiry">
+        <option value="1">Expira em 1h</option>
+        <option value="6">Expira em 6h</option>
+        <option value="24" selected>Expira em 24h</option>
+        <option value="72">Expira em 3 dias</option>
+        <option value="168">Expira em 7 dias</option>
+      </select>
+      <button class="btn btn-primary" onclick="generateShare()">Gerar Link</button>
+    </div>
+    <div class="share-result" id="shareResult"></div>
+    <button class="btn btn-ghost copy-btn" id="copyBtn" style="display:none" onclick="copyShare()">📋 Copiar Link</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  let currentShareFile = '';
+
+  // ── Drag & drop ──────────────────────────────────────────────────────────
+  const dropZone = document.getElementById('dropZone');
+  const fileInput = document.getElementById('fileInput');
+
+  ['dragenter','dragover'].forEach(e => dropZone.addEventListener(e, ev => {
+    ev.preventDefault(); dropZone.classList.add('drag-over');
+  }));
+  ['dragleave','drop'].forEach(e => dropZone.addEventListener(e, ev => {
+    ev.preventDefault(); dropZone.classList.remove('drag-over');
+  }));
+  dropZone.addEventListener('drop', ev => {
+    const files = ev.dataTransfer.files;
+    if (files.length) uploadFiles(files);
+  });
+  fileInput.addEventListener('change', () => uploadFiles(fileInput.files));
+
+  // ── Upload with progress ─────────────────────────────────────────────────
+  function uploadFiles(files) {
+    const folder = document.getElementById('folderInput').value.trim() || 'geral';
+    const fd = new FormData();
+    for (const f of files) fd.append('file', f);
+    fd.append('folder', folder);
+
+    const prog = document.getElementById('upload-progress');
+    const bar = document.getElementById('progressBar');
+    const label = document.getElementById('progressLabel');
+    prog.style.display = 'block';
+    bar.style.width = '0%';
+    label.textContent = 'Enviando…';
+
+    const xhr = new XMLHttpRequest();
+    xhr.upload.addEventListener('progress', e => {
+      if (e.lengthComputable) {
+        const pct = Math.round(e.loaded / e.total * 100);
+        bar.style.width = pct + '%';
+        label.textContent = `Enviando… ${pct}%`;
+      }
+    });
+    xhr.addEventListener('load', () => {
+      bar.style.width = '100%';
+      label.textContent = 'Concluído!';
+      showToast('✅ Upload concluído!', 'success');
+      setTimeout(() => { prog.style.display = 'none'; location.reload(); }, 1200);
+    });
+    xhr.addEventListener('error', () => {
+      showToast('❌ Erro no upload', 'error');
+      prog.style.display = 'none';
+    });
+    xhr.open('POST', '/upload');
+    xhr.send(fd);
+  }
+
+  // ── Search (debounced) ────────────────────────────────────────────────────
+  let searchTimer;
+  function debounceSearch(val) {
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(() => {
+      const folder = new URLSearchParams(location.search).get('folder') || '';
+      const params = new URLSearchParams();
+      if (val) params.set('q', val);
+      if (folder) params.set('folder', folder);
+      location.href = '/?' + params.toString();
+    }, 400);
+  }
+
+  // ── Preview modal ─────────────────────────────────────────────────────────
+  function openPreview(name, type) {
+    if (!type) return;
+    document.getElementById('previewTitle').textContent = name;
+    const content = document.getElementById('previewContent');
+    if (type === 'image') {
+      content.innerHTML = `<img src="/preview/${encodeURIComponent(name)}" alt="${name}">`;
+    } else if (type === 'pdf') {
+      content.innerHTML = `<iframe src="/preview/${encodeURIComponent(name)}"></iframe>`;
+    }
+    document.getElementById('previewModal').classList.add('open');
+  }
+
+  // ── Share modal ────────────────────────────────────────────────────────────
+  function openShare(name) {
+    currentShareFile = name;
+    document.getElementById('shareFilename').textContent = name;
+    document.getElementById('shareResult').style.display = 'none';
+    document.getElementById('copyBtn').style.display = 'none';
+    document.getElementById('shareModal').classList.add('open');
+  }
+
+  function generateShare() {
+    const hours = document.getElementById('shareExpiry').value;
+    const fd = new FormData();
+    fd.append('hours', hours);
+    fetch(`/share/create/${encodeURIComponent(currentShareFile)}`, { method: 'POST', body: fd })
+      .then(r => r.json())
+      .then(data => {
+        const result = document.getElementById('shareResult');
+        result.textContent = data.link;
+        result.style.display = 'block';
+        document.getElementById('copyBtn').style.display = 'inline-flex';
+      });
+  }
+
+  function copyShare() {
+    const text = document.getElementById('shareResult').textContent;
+    navigator.clipboard.writeText(text).then(() => showToast('📋 Link copiado!', 'success'));
+  }
+
+  function closeModal(id) {
+    document.getElementById(id).classList.remove('open');
+    document.getElementById('previewContent').innerHTML = '';
+  }
+
+  // ── Toast ─────────────────────────────────────────────────────────────────
+  function showToast(msg, type='') {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = 'toast show ' + type;
+    setTimeout(() => t.className = 'toast', 3000);
+  }
+
+  // close modal on bg click
+  document.querySelectorAll('.modal-bg').forEach(bg => {
+    bg.addEventListener('click', e => { if (e.target === bg) bg.classList.remove('open'); });
+  });
+</script>
 </body>
 </html>

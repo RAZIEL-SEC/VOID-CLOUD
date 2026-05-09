@@ -1,55 +1,227 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gerenciar Arquivos - VOID CLOUD 🦇</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
-    <style>
-        body { background: linear-gradient(135deg, #0d0d0d 0%, #2d1b3d 50%, #4a0e4e 100%); color: #ffffff; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; min-height: 100vh; margin: 0; }
-        .glass-container { backdrop-filter: blur(20px); background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 20px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.37); padding: 2rem; margin: 2rem auto; max-width: 800px; }
-        .list-group-item { background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 10px; margin-bottom: 0.5rem; color: #ffffff; }
-        .list-group-item:hover { background: rgba(255, 255, 255, 0.1); }
-        .btn-danger { background: linear-gradient(45deg, #e91e63, #f44336); border: none; border-radius: 20px; padding: 0.5rem 1rem; font-size: 0.9rem; }
-        .btn-danger:hover { transform: translateY(-1px); box-shadow: 0 4px 15px rgba(233, 30, 99, 0.5); }
-        .btn-secondary { background: linear-gradient(45deg, #4a0e4e, #3a0144); border: none; border-radius: 20px; padding: 0.5rem 1rem; }
-        .alert { background: rgba(255, 0, 0, 0.1); border: 1px solid rgba(255, 0, 0, 0.2); color: #ffcccc; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Arquivos — VOID CLOUD Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f; --surface: #111118; --surface2: #1a1a24;
+    --border: #2a2a3a; --accent: #7c3aed; --accent2: #a855f7;
+    --accent-glow: rgba(124,58,237,0.2);
+    --text: #e8e8f0; --muted: #6b6b80;
+    --danger: #ef4444; --success: #22c55e;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'Syne', sans-serif; min-height: 100vh; }
+  body::before {
+    content: ''; position: fixed; inset: 0;
+    background-image:
+      linear-gradient(rgba(124,58,237,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(124,58,237,0.03) 1px, transparent 1px);
+    background-size: 40px 40px; pointer-events: none; z-index: 0;
+  }
+  .layout { display: flex; min-height: 100vh; position: relative; z-index: 1; }
+
+  aside {
+    width: 220px; background: var(--surface);
+    border-right: 1px solid var(--border);
+    display: flex; flex-direction: column; padding: 1.5rem 1rem;
+    position: sticky; top: 0; height: 100vh;
+  }
+  .logo {
+    font-size: 1.2rem; font-weight: 800;
+    background: linear-gradient(135deg, #a855f7, #7c3aed);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    margin-bottom: 2rem; padding-left: 0.5rem;
+  }
+  aside nav { display: flex; flex-direction: column; gap: 0.3rem; flex: 1; }
+  aside nav a {
+    display: flex; align-items: center; gap: 0.7rem;
+    padding: 0.65rem 0.8rem; border-radius: 8px;
+    color: var(--muted); text-decoration: none; font-size: 0.875rem; font-weight: 700;
+    transition: all 0.2s;
+  }
+  aside nav a:hover, aside nav a.active { background: var(--surface2); color: var(--text); }
+  aside nav a.active { border-left: 3px solid var(--accent); padding-left: calc(0.8rem - 3px); }
+  .sidebar-footer a {
+    display: block; padding: 0.65rem 0.8rem; border-radius: 8px;
+    color: var(--danger); text-decoration: none; font-size: 0.875rem; font-weight: 700;
+    transition: background 0.2s;
+  }
+  .sidebar-footer a:hover { background: rgba(239,68,68,0.1); }
+
+  main { flex: 1; padding: 2rem; overflow: auto; }
+  h1 { font-size: 1.6rem; font-weight: 800; margin-bottom: 0.3rem; }
+  .subtitle { color: var(--muted); font-size: 0.875rem; margin-bottom: 1.5rem; }
+
+  {% with messages = get_flashed_messages() %}{% if messages %}
+  .flash { background: rgba(34,197,94,0.1); border: 1px solid var(--success);
+    color: var(--success); border-radius: 8px; padding: 0.8rem 1rem;
+    margin-bottom: 1.5rem; font-size: 0.875rem; }
+  {% endif %}{% endwith %}
+
+  .toolbar { display: flex; gap: 1rem; margin-bottom: 1.5rem; align-items: center; }
+  .search-wrap { flex: 1; position: relative; max-width: 320px; }
+  .search-wrap input {
+    width: 100%; background: var(--surface); border: 1px solid var(--border);
+    color: var(--text); padding: 0.6rem 1rem 0.6rem 2.5rem;
+    border-radius: 8px; font-family: 'Syne', sans-serif; font-size: 0.875rem; outline: none;
+    transition: border-color 0.2s;
+  }
+  .search-wrap input:focus { border-color: var(--accent); }
+  .search-wrap::before {
+    content: '⌕'; position: absolute; left: 0.8rem; top: 50%;
+    transform: translateY(-50%); color: var(--muted); font-size: 1.1rem;
+  }
+
+  table { width: 100%; border-collapse: collapse; }
+  thead th {
+    text-align: left; padding: 0.6rem 0.8rem; font-weight: 700;
+    color: var(--muted); border-bottom: 1px solid var(--border);
+    font-family: 'Space Mono', monospace; text-transform: uppercase; font-size: 0.7rem;
+  }
+  tbody td { padding: 0.75rem 0.8rem; border-bottom: 1px solid rgba(42,42,58,0.5); font-size: 0.875rem; }
+  tbody tr:hover td { background: var(--surface2); }
+
+  .category-icon { font-size: 1.2rem; }
+  .fname { font-weight: 700; }
+  .mono { font-family: 'Space Mono', monospace; font-size: 0.8rem; color: var(--muted); }
+  .folder-badge {
+    background: var(--surface2); border: 1px solid var(--border);
+    padding: 0.15rem 0.5rem; border-radius: 99px; font-size: 0.75rem;
+  }
+
+  .btn {
+    display: inline-flex; align-items: center; gap: 0.3rem;
+    padding: 0.35rem 0.7rem; border-radius: 6px; border: none;
+    font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.75rem;
+    cursor: pointer; transition: all 0.2s; text-decoration: none;
+  }
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-primary:hover { background: var(--accent2); }
+  .btn-danger { background: rgba(239,68,68,0.15); color: var(--danger); border: 1px solid rgba(239,68,68,0.3); }
+  .btn-danger:hover { background: rgba(239,68,68,0.3); }
+  .btn-ghost { background: transparent; color: var(--muted); border: 1px solid var(--border); }
+  .btn-ghost:hover { color: var(--text); border-color: var(--accent); }
+
+  /* Move folder inline */
+  .move-form { display: inline-flex; gap: 0.3rem; align-items: center; }
+  .move-form input {
+    background: var(--surface2); border: 1px solid var(--border);
+    color: var(--text); padding: 0.25rem 0.5rem; border-radius: 6px;
+    font-family: 'Syne', sans-serif; font-size: 0.75rem; width: 100px; outline: none;
+  }
+  .move-form input:focus { border-color: var(--accent); }
+
+  .empty-state { text-align: center; padding: 4rem; color: var(--muted); }
+</style>
 </head>
 <body>
-    <div class="glass-container">
-        <h1 style="background: linear-gradient(45deg, #9c27b0, #e91e63); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Gerenciar Arquivos (Admin) 🦇</h1>
-        <p class="text-muted" style="color: #ffffff !important;">Aqui você pode apagar arquivos do servidor.</p>
-        {% with messages = get_flashed_messages() %}
-            {% if messages %}
-                <div class="alert mb-3">
-                    {% for message in messages %}
-                        <p>{{ message }}</p>
-                    {% endfor %}
-                </div>
-            {% endif %}
-        {% endwith %}
-        {% if files %}
-            <ul class="list-group">
-                {% for file in files %}
-                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                        <span><i class="fas fa-file"></i> {{ file }}</span>
-                        <a href="/admin/delete/{{ file }}" class="btn btn-danger btn-sm" onclick="return confirm('Tem certeza que deseja apagar este arquivo?')"><i class="fas fa-trash"></i> Apagar</a>
-                    </li>
-                {% endfor %}
-            </ul>
-        {% else %}
-            <p class="text-muted" style="color: #ffffff !important;"><i class="fas fa-folder-open"></i> Nenhum arquivo disponível para apagar.</p>
-        {% endif %}
-        <div class="mt-3">
-            <a href="/admin/logout" class="btn btn-secondary"><i class="fas fa-sign-out-alt"></i> Sair</a>
-            <a href="/" class="btn btn-secondary ms-2"><i class="fas fa-home"></i> Voltar ao Início</a>
-        </div>
+<div class="layout">
+  <aside>
+    <div class="logo">VOID 🦇 CLOUD</div>
+    <nav>
+      <a href="/admin">📊 Dashboard</a>
+      <a href="/admin/files" class="active">📁 Arquivos</a>
+      <a href="/">🌐 Site</a>
+    </nav>
+    <div class="sidebar-footer">
+      <a href="/admin/logout">⏻ Sair</a>
     </div>
+  </aside>
+
+  <main>
+    <h1>Arquivos</h1>
+    <p class="subtitle">Gerenciar todos os arquivos enviados</p>
+
+    {% with messages = get_flashed_messages() %}
+    {% if messages %}
+    <div class="flash">{{ messages[0] }}</div>
+    {% endif %}
+    {% endwith %}
+
+    <div class="toolbar">
+      <div class="search-wrap">
+        <input type="text" id="searchInput" placeholder="Filtrar arquivos…" oninput="filterTable(this.value)">
+      </div>
+    </div>
+
+    {% if files %}
+    <table id="fileTable">
+      <thead>
+        <tr>
+          <th></th>
+          <th>Nome</th>
+          <th>Pasta</th>
+          <th>Tamanho</th>
+          <th>Downloads</th>
+          <th>Uploaded em</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for f in files %}
+        <tr data-name="{{ f.name|lower }}">
+          <td>
+            <span class="category-icon">
+              {% if f.category == 'image' %}🖼️
+              {% elif f.category == 'pdf' %}📄
+              {% elif f.category == 'video' %}🎬
+              {% elif f.category == 'audio' %}🎵
+              {% elif f.category == 'archive' %}🗜️
+              {% elif f.category == 'doc' %}📝
+              {% else %}📁{% endif %}
+            </span>
+          </td>
+          <td><span class="fname">{{ f.name }}</span></td>
+          <td>
+            <span class="folder-badge" id="badge-{{ loop.index }}">📂 {{ f.folder }}</span>
+          </td>
+          <td class="mono">{{ f.size }}</td>
+          <td class="mono">{{ f.downloads }}</td>
+          <td class="mono">{{ f.uploaded_at[:10] if f.uploaded_at else '—' }}</td>
+          <td>
+            <div style="display:flex;gap:0.4rem;flex-wrap:wrap;align-items:center">
+              <a href="/download/{{ f.name }}" class="btn btn-primary">⬇</a>
+              <div class="move-form" id="move-{{ loop.index }}">
+                <input type="text" placeholder="Pasta…" value="{{ f.folder }}" id="folder-{{ loop.index }}">
+                <button class="btn btn-ghost" onclick="moveFile('{{ f.name }}', {{ loop.index }})">↗</button>
+              </div>
+              <a href="/admin/delete/{{ f.name }}"
+                 class="btn btn-danger"
+                 onclick="return confirm('Apagar {{ f.name }}?')">🗑</a>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="empty-state">Nenhum arquivo encontrado.</div>
+    {% endif %}
+  </main>
+</div>
+
+<script>
+  function filterTable(q) {
+    q = q.toLowerCase();
+    document.querySelectorAll('#fileTable tbody tr').forEach(row => {
+      row.style.display = row.dataset.name.includes(q) ? '' : 'none';
+    });
+  }
+
+  function moveFile(filename, idx) {
+    const folder = document.getElementById('folder-' + idx).value.trim() || 'geral';
+    const fd = new FormData();
+    fd.append('folder', folder);
+    fetch('/admin/move/' + encodeURIComponent(filename), { method: 'POST', body: fd })
+      .then(r => r.json())
+      .then(() => {
+        document.getElementById('badge-' + idx).textContent = '📂 ' + folder;
+      });
+  }
+</script>
 </body>
-
 </html>
-
-

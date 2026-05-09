@@ -1,49 +1,124 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login Admin - VOID CLOUD 🦇</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
-    <style>
-        body { background: linear-gradient(135deg, #0d0d0d 0%, #2d1b3d 50%, #4a0e4e 100%); color: #ffffff; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
-        .glass-container { backdrop-filter: blur(20px); background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 20px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.37); padding: 2rem; max-width: 400px; width: 100%; }
-        .form-control { background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 15px; color: #f5f5f5; padding: 1rem; }
-        .form-control:focus { background: rgba(255, 255, 255, 0.2); border-color: #9c27b0; box-shadow: 0 0 10px rgba(156, 39, 176, 0.5); color: #ffffff; }
-        .btn-primary { background: linear-gradient(45deg, #9c27b0, #e91e63); border: none; border-radius: 25px; padding: 0.75rem 2rem; font-weight: bold; }
-        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(156, 39, 176, 0.5); }
-        .alert { background: rgba(255, 0, 0, 0.1); border: 1px solid rgba(255, 0, 0, 0.2); color: #ffcccc; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Login — VOID CLOUD</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f; --surface: #111118; --surface2: #1a1a24;
+    --border: #2a2a3a; --accent: #7c3aed; --accent2: #a855f7;
+    --accent-glow: rgba(124,58,237,0.25);
+    --text: #e8e8f0; --muted: #6b6b80; --danger: #ef4444;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: 'Syne', sans-serif;
+    min-height: 100vh; display: flex; align-items: center; justify-content: center;
+    overflow: hidden;
+  }
+  body::before {
+    content: ''; position: fixed; inset: 0;
+    background-image:
+      linear-gradient(rgba(124,58,237,0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(124,58,237,0.05) 1px, transparent 1px);
+    background-size: 40px 40px; pointer-events: none;
+  }
+  .glow-orb {
+    position: fixed; width: 600px; height: 600px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(124,58,237,0.15), transparent 70%);
+    top: 50%; left: 50%; transform: translate(-50%, -50%);
+    pointer-events: none;
+  }
+
+  .card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 20px; padding: 2.5rem; width: 100%; max-width: 380px;
+    position: relative; z-index: 1;
+    box-shadow: 0 0 60px var(--accent-glow);
+  }
+  .card-logo {
+    text-align: center; margin-bottom: 2rem;
+  }
+  .card-logo .bat { font-size: 3rem; display: block; margin-bottom: 0.5rem; }
+  .card-logo h1 {
+    font-size: 1.5rem; font-weight: 800;
+    background: linear-gradient(135deg, #a855f7, #7c3aed);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .card-logo p { color: var(--muted); font-size: 0.8rem; margin-top: 0.3rem; }
+
+  .form-group { margin-bottom: 1rem; }
+  label { display: block; font-size: 0.8rem; font-weight: 700; color: var(--muted); margin-bottom: 0.4rem; }
+  input[type="text"], input[type="password"] {
+    width: 100%; background: var(--surface2); border: 1px solid var(--border);
+    color: var(--text); padding: 0.75rem 1rem; border-radius: 10px;
+    font-family: 'Space Mono', monospace; font-size: 0.9rem; outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-glow);
+  }
+
+  .btn {
+    width: 100%; padding: 0.85rem; border-radius: 10px; border: none;
+    background: var(--accent); color: #fff;
+    font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1rem;
+    cursor: pointer; transition: all 0.2s; margin-top: 0.5rem;
+    box-shadow: 0 0 20px var(--accent-glow);
+  }
+  .btn:hover { background: var(--accent2); transform: translateY(-1px); }
+
+  .error {
+    background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3);
+    color: var(--danger); border-radius: 8px; padding: 0.7rem 1rem;
+    font-size: 0.8rem; margin-bottom: 1rem; text-align: center;
+  }
+
+  .back { text-align: center; margin-top: 1.2rem; }
+  .back a {
+    color: var(--muted); font-size: 0.8rem; text-decoration: none;
+    transition: color 0.2s;
+  }
+  .back a:hover { color: var(--text); }
+</style>
 </head>
 <body>
-    <div class="glass-container">
-        <h1 class="text-center" style="background: linear-gradient(45deg, #9c27b0, #e91e63); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Login Admin 🦇</h1>
-        <form method="POST">
-            <div class="mb-3">
-                <label for="username" class="form-label"><i class="fas fa-user"></i> Usuário:</label>
-                <input type="text" class="form-control" id="username" name="username" required>
-            </div>
-            <div class="mb-3">
-                <label for="password" class="form-label"><i class="fas fa-lock"></i> Senha:</label>
-                <input type="password" class="form-control" id="password" name="password" required>
-            </div>
-            <button type="submit" class="btn btn-primary w-100"><i class="fas fa-sign-in-alt"></i> Entrar</button>
-        </form>
-        {% with messages = get_flashed_messages() %}
-            {% if messages %}
-                <div class="alert mt-3">
-                    {% for message in messages %}
-                        <p>{{ message }}</p>
-                    {% endfor %}
-                </div>
-            {% endif %}
-        {% endwith %}
-        <p class="text-center mt-3"><a href="index.html" style="color: #9c27b0;">Voltar ao Início</a></p>
-    </div>
+<div class="glow-orb"></div>
+<div class="card">
+  <div class="card-logo">
+    <span class="bat">🦇</span>
+    <h1>VOID CLOUD</h1>
+    <p>Acesso Administrativo</p>
+  </div>
+
+  {% with messages = get_flashed_messages() %}
+  {% if messages %}
+  <div class="error">{{ messages[0] }}</div>
+  {% endif %}
+  {% endwith %}
+
+  <div class="form-group">
+    <label for="username">Usuário</label>
+    <input type="text" name="username" id="username" placeholder="admin" autocomplete="username"
+           form="login-form" required>
+  </div>
+  <div class="form-group">
+    <label for="password">Senha</label>
+    <input type="password" name="password" id="password" placeholder="••••••••" autocomplete="current-password"
+           form="login-form" required>
+  </div>
+
+  <form id="login-form" method="POST" action="/admin/login">
+    <button type="submit" class="btn">Entrar →</button>
+  </form>
+
+  <div class="back">
+    <a href="/">← Voltar ao site</a>
+  </div>
+</div>
 </body>
-
 </html>
-
-

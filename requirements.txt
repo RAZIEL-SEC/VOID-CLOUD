@@ -1,4 +1,4 @@
-Flask==2.2.5
-Werkzeug==2.2.3
-Flask-Login
+flask
+flask-login
+werkzeug
 python-dotenv
