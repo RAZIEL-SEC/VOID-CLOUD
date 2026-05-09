@@ -55,13 +55,15 @@
 
   .upload-row{display:flex;gap:0.6rem;margin-top:1.3rem;
     justify-content:center;align-items:center;flex-wrap:wrap}
-  .folder-chip{display:flex;align-items:center;background:var(--surface2);
-    border:1px solid var(--border);border-radius:8px;overflow:hidden;transition:border-color .2s}
-  .folder-chip:focus-within{border-color:var(--accent)}
-  .folder-chip span{padding:0 0.7rem;color:var(--muted);font-size:0.78rem;
-    border-right:1px solid var(--border);line-height:2.35rem;white-space:nowrap}
-  .folder-chip input{background:transparent;border:none;outline:none;color:var(--text);
-    padding:0.48rem 0.7rem;font-family:'Space Mono',monospace;font-size:0.82rem;width:110px}
+
+  /* SELECT de pasta substituindo o chip de texto que não funcionava */
+  .folder-select{background:var(--surface2);border:1px solid var(--border);
+    color:var(--text);padding:0.46rem 1.6rem 0.46rem 0.7rem;border-radius:8px;
+    font-family:'Space Mono',monospace;font-size:0.82rem;outline:none;cursor:pointer;
+    transition:border-color .2s;appearance:none;-webkit-appearance:none;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%236b6b80' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat:no-repeat;background-position:right 0.55rem center}
+  .folder-select:focus{border-color:var(--accent)}
 
   #upload-progress{display:none;margin-top:1rem}
   .prog-wrap{background:var(--surface2);border-radius:99px;height:5px;overflow:hidden;margin-bottom:.35rem}
@@ -169,6 +171,14 @@
     border-radius:7px;padding:.7rem;font-family:'Space Mono',monospace;
     font-size:.76rem;word-break:break-all;display:none;line-height:1.5}
 
+  /* Select do modal mover */
+  .move-select{width:100%;background:var(--surface2);border:1px solid var(--border);
+    color:var(--text);padding:.55rem .8rem;border-radius:8px;
+    font-family:'Syne',sans-serif;font-size:.875rem;outline:none;
+    cursor:pointer;margin-bottom:.9rem;transition:border-color .2s}
+  .move-select:focus{border-color:var(--accent)}
+  .modal-actions{display:flex;gap:.5rem;justify-content:flex-end}
+
   .empty-state{text-align:center;padding:3.5rem 2rem;color:var(--muted)}
   .empty-state .icon{font-size:3rem;display:block;margin-bottom:1rem;opacity:.3}
 
@@ -247,7 +257,7 @@
           <div class="file-actions">
             <a href="/download/{{ f.name }}" class="btn btn-primary btn-sm">⬇ Baixar</a>
             <button class="btn btn-ghost btn-sm" onclick="openShare('{{ f.name }}')">🔗</button>
-            <!-- FIX: botao de apagar para usuario -->
+            <button class="btn btn-ghost btn-sm" onclick="openMoveModal('{{ f.name }}','{{ f.folder }}')">↗ Mover</button>
             <button class="btn btn-danger btn-sm" onclick="deleteFile('{{ f.name }}', this)">🗑</button>
           </div>
         </div>
@@ -268,21 +278,19 @@
   <!-- ══ Aba: Upload ══ -->
   <div class="tab-panel" id="tab-upload">
     <input type="file" id="fileInput" multiple>
-    <input type="file" id="folderFileInput" multiple webkitdirectory>
 
     <div class="upload-zone" id="dropZone">
       <span class="upload-icon">📄</span>
       <h2>Enviar Arquivos</h2>
       <p>Arraste aqui ou clique para selecionar — múltiplos suportados</p>
       <div class="upload-row">
-        <div class="folder-chip" onclick="event.stopPropagation()">
-          <span>📂 Pasta</span>
-          <input type="text" id="folderInput" placeholder="geral" autocomplete="off"
-                 list="folderSuggestions">
-          <datalist id="folderSuggestions">
-            {% for folder in folders %}<option value="{{ folder }}">{% endfor %}
-          </datalist>
-        </div>
+        <!-- SELECT real de pasta no lugar do chip de texto que não funcionava -->
+        <select class="folder-select" id="folderSelect" onclick="event.stopPropagation()">
+          <option value="geral">📂 geral</option>
+          {% for folder in folders %}
+          <option value="{{ folder }}">📂 {{ folder }}</option>
+          {% endfor %}
+        </select>
         <label for="fileInput" class="btn btn-primary" onclick="event.stopPropagation()">
           ＋ Selecionar Arquivos
         </label>
@@ -292,22 +300,7 @@
         <div class="prog-lbl" id="progressLabel">Enviando…</div>
       </div>
     </div>
-
-    <!-- FIX: upload de pasta — agora chama /upload-folder que existe -->
-    <div class="upload-zone" id="dropZoneFolder" style="margin-bottom:0">
-      <span class="upload-icon">📂</span>
-      <h2>Enviar Pasta Inteira</h2>
-      <p>Selecione uma pasta do seu dispositivo — todos os arquivos serão enviados</p>
-      <div class="upload-row">
-        <label for="folderFileInput" class="btn btn-ghost" onclick="event.stopPropagation()">
-          📂 Selecionar Pasta
-        </label>
-      </div>
-      <div id="folder-upload-progress" style="display:none;margin-top:1rem">
-        <div class="prog-wrap"><div class="prog-bar" id="folderProgressBar"></div></div>
-        <div class="prog-lbl" id="folderProgressLabel">Enviando…</div>
-      </div>
-    </div>
+    <!-- Bloco "Enviar Pasta Inteira" removido -->
   </div>
 
   <!-- ══ Aba: Pastas ══ -->
@@ -384,11 +377,32 @@
   </div>
 </div>
 
+<!-- Modal: Mover arquivo entre pastas -->
+<div class="modal-bg" id="moveModal">
+  <div class="modal" style="min-width:310px">
+    <button class="modal-close" onclick="closeModal('moveModal')">✕</button>
+    <h3>↗ Mover Arquivo</h3>
+    <p style="color:var(--muted);font-size:.8rem;margin-bottom:.9rem" id="moveModalInfo"></p>
+    <label style="display:block;font-size:.78rem;font-weight:700;color:var(--muted);margin-bottom:.4rem">
+      Mover para a pasta:
+    </label>
+    <select class="move-select" id="moveDestSelect"></select>
+    <div class="modal-actions">
+      <button class="btn btn-ghost btn-sm" onclick="closeModal('moveModal')">Cancelar</button>
+      <button class="btn btn-primary btn-sm" onclick="confirmMove()">Mover →</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
   let activeFolder = '';
   let currentShareFile = '';
+  let moveFileData = { filename: '', srcFolder: '' };
+
+  // Pastas disponíveis injetadas pelo servidor
+  const allFolders = [{% for folder in folders %}"{{ folder }}"{% if not loop.last %},{% endif %}{% endfor %}];
 
   function switchTab(name, btn) {
     document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
@@ -407,37 +421,19 @@
     if (ev.dataTransfer.files.length) uploadFiles(ev.dataTransfer.files);
   });
   dropZone.addEventListener('click', ev => {
-    if (['INPUT','LABEL','SPAN'].includes(ev.target.tagName)) return;
+    if (['SELECT','OPTION','LABEL','SPAN'].includes(ev.target.tagName)) return;
     fileInput.click();
   });
   fileInput.addEventListener('change', () => {
     if (fileInput.files.length) uploadFiles(fileInput.files);
   });
 
-  const folderFileInput = document.getElementById('folderFileInput');
-  folderFileInput.addEventListener('change', () => {
-    if (folderFileInput.files.length) uploadFolderFiles(folderFileInput.files);
-  });
-
   function uploadFiles(files) {
-    const folder = document.getElementById('folderInput').value.trim() || 'geral';
+    const folder = document.getElementById('folderSelect').value || 'geral';
     const fd = new FormData();
     for (const f of files) fd.append('file', f);
     fd.append('folder', folder);
     sendWithProgress(fd, '/upload', 'progressBar', 'progressLabel', 'upload-progress');
-  }
-
-  // FIX: agora envia para /upload-folder que existe no servidor
-  function uploadFolderFiles(files) {
-    const fd = new FormData();
-    let baseName = '';
-    for (const f of files) {
-      fd.append('file', f);
-      const rel = f.webkitRelativePath || f.name;
-      if (!baseName && rel.includes('/')) baseName = rel.split('/')[0];
-    }
-    if (baseName) fd.append('base_folder', baseName);
-    sendWithProgress(fd, '/upload-folder', 'folderProgressBar', 'folderProgressLabel', 'folder-upload-progress');
   }
 
   function sendWithProgress(fd, url, barId, lblId, progId) {
@@ -447,7 +443,6 @@
     prog.style.display = 'block';
     bar.style.width = '0%';
     lbl.textContent = 'Enviando…';
-
     const xhr = new XMLHttpRequest();
     xhr.upload.addEventListener('progress', e => {
       if (e.lengthComputable) {
@@ -506,7 +501,6 @@
     filterFiles('');
   }
 
-  // FIX: criar pasta agora funciona (rota existe no servidor)
   function createFolder() {
     const name = document.getElementById('newFolderName').value.trim();
     if (!name) { showToast('Digite um nome para a pasta', 'error'); return; }
@@ -525,7 +519,6 @@
     }).catch(() => showToast('❌ Erro de conexão', 'error'));
   }
 
-  // FIX: renomear pasta agora funciona (rota existe no servidor)
   function renameFolder(oldName) {
     const newName = prompt('Novo nome para a pasta "' + oldName + '":', oldName);
     if (!newName || newName === oldName) return;
@@ -543,7 +536,6 @@
     }).catch(() => showToast('❌ Erro de conexão', 'error'));
   }
 
-  // FIX: usuario pode apagar arquivo
   function deleteFile(filename, btn) {
     if (!confirm('Apagar "' + filename + '"?')) return;
     fetch('/delete/' + encodeURIComponent(filename), {method: 'POST'})
@@ -557,6 +549,54 @@
           showToast('❌ ' + (data.error || 'Erro'), 'error');
         }
       }).catch(() => showToast('❌ Erro de conexão', 'error'));
+  }
+
+  /* ── Mover arquivo entre pastas ── */
+  function openMoveModal(filename, srcFolder) {
+    moveFileData = { filename, srcFolder };
+    document.getElementById('moveModalInfo').textContent =
+      '📄 ' + filename + '  —  atual: 📂 ' + srcFolder;
+
+    const sel = document.getElementById('moveDestSelect');
+    sel.innerHTML = '';
+
+    // Adiciona "geral" se não for a pasta atual
+    if (srcFolder !== 'geral') {
+      const opt = document.createElement('option');
+      opt.value = 'geral'; opt.textContent = '📂 geral';
+      sel.appendChild(opt);
+    }
+    // Adiciona demais pastas exceto a atual
+    allFolders.forEach(f => {
+      if (f === srcFolder) return;
+      const opt = document.createElement('option');
+      opt.value = f; opt.textContent = '📂 ' + f;
+      sel.appendChild(opt);
+    });
+
+    document.getElementById('moveModal').classList.add('open');
+  }
+
+  function confirmMove() {
+    const dest = document.getElementById('moveDestSelect').value;
+    if (!dest) { showToast('Selecione uma pasta de destino', 'error'); return; }
+    fetch('/file/move', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        filename: moveFileData.filename,
+        src_folder: moveFileData.srcFolder,
+        dst_folder: dest
+      })
+    }).then(r => r.json()).then(data => {
+      if (data.success) {
+        showToast('✅ Arquivo movido para 📂 ' + dest, 'success');
+        closeModal('moveModal');
+        setTimeout(() => location.reload(), 800);
+      } else {
+        showToast('❌ ' + (data.error || 'Erro'), 'error');
+      }
+    }).catch(() => showToast('❌ Erro de conexão', 'error'));
   }
 
   function openPreview(name, type) {
@@ -594,7 +634,7 @@
 
   function closeModal(id) {
     document.getElementById(id).classList.remove('open');
-    document.getElementById('previewContent').innerHTML = '';
+    if (id === 'previewModal') document.getElementById('previewContent').innerHTML = '';
   }
   document.querySelectorAll('.modal-bg').forEach(bg =>
     bg.addEventListener('click', e => { if (e.target === bg) bg.classList.remove('open'); }));
