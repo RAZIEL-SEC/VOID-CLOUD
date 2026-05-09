@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Login — VOID CLOUD</title>
+<link rel="icon" href="/static/favicon.ico" type="image/x-icon">
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -39,9 +40,7 @@
     position: relative; z-index: 1;
     box-shadow: 0 0 60px var(--accent-glow);
   }
-  .card-logo {
-    text-align: center; margin-bottom: 2rem;
-  }
+  .card-logo { text-align: center; margin-bottom: 2rem; }
   .card-logo .bat { font-size: 3rem; display: block; margin-bottom: 0.5rem; }
   .card-logo h1 {
     font-size: 1.5rem; font-weight: 800;
@@ -61,6 +60,20 @@
   input:focus {
     border-color: var(--accent);
     box-shadow: 0 0 0 3px var(--accent-glow);
+  }
+
+  /* FIX: estilo do checkbox lembrar de mim */
+  .remember-row {
+    display: flex; align-items: center; gap: 0.6rem;
+    margin-bottom: 1rem; margin-top: 0.25rem;
+  }
+  .remember-row input[type="checkbox"] {
+    width: 16px; height: 16px; accent-color: var(--accent);
+    cursor: pointer; flex-shrink: 0;
+  }
+  .remember-row label {
+    font-size: 0.8rem; color: var(--muted); cursor: pointer;
+    margin: 0; font-weight: 600;
   }
 
   .btn {
@@ -101,18 +114,22 @@
   {% endif %}
   {% endwith %}
 
-  <div class="form-group">
-    <label for="username">Usuário</label>
-    <input type="text" name="username" id="username" placeholder="admin" autocomplete="username"
-           form="login-form" required>
-  </div>
-  <div class="form-group">
-    <label for="password">Senha</label>
-    <input type="password" name="password" id="password" placeholder="••••••••" autocomplete="current-password"
-           form="login-form" required>
-  </div>
+  <form method="POST" action="/admin/login">
+    <div class="form-group">
+      <label for="username">Usuário</label>
+      <input type="text" name="username" id="username" placeholder="admin" autocomplete="username" required>
+    </div>
+    <div class="form-group">
+      <label for="password">Senha</label>
+      <input type="password" name="password" id="password" placeholder="••••••••" autocomplete="current-password" required>
+    </div>
 
-  <form id="login-form" method="POST" action="/admin/login">
+    <!-- FIX: botao lembrar de mim -->
+    <div class="remember-row">
+      <input type="checkbox" name="remember" id="remember">
+      <label for="remember">Lembrar de mim</label>
+    </div>
+
     <button type="submit" class="btn">Entrar →</button>
   </form>
 

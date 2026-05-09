@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>VOID CLOUD</title>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🦇</text></svg>">
+<link rel="icon" href="/static/favicon.ico" type="image/x-icon">
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
 <style>
   :root{--bg:#0a0a0f;--surface:#111118;--surface2:#1a1a24;--border:#2a2a3a;
@@ -29,7 +29,6 @@
 
   main{position:relative;z-index:1;max-width:1100px;margin:0 auto;padding:1.75rem 1.25rem}
 
-  /* ── Tabs ── */
   .tabs{display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:1.75rem}
   .tab{padding:0.65rem 1.2rem;font-size:0.85rem;font-weight:700;cursor:pointer;
     color:var(--muted);border:none;background:transparent;
@@ -40,7 +39,6 @@
   .tab-panel{display:none}
   .tab-panel.active{display:block}
 
-  /* ── Upload zone ── */
   input[type="file"]{display:none}
   .upload-zone{border:2px dashed var(--border);border-radius:14px;padding:2.25rem 2rem;
     text-align:center;cursor:pointer;transition:all .3s;background:var(--surface);
@@ -65,14 +63,12 @@
   .folder-chip input{background:transparent;border:none;outline:none;color:var(--text);
     padding:0.48rem 0.7rem;font-family:'Space Mono',monospace;font-size:0.82rem;width:110px}
 
-  /* progresso */
   #upload-progress{display:none;margin-top:1rem}
   .prog-wrap{background:var(--surface2);border-radius:99px;height:5px;overflow:hidden;margin-bottom:.35rem}
   .prog-bar{height:100%;width:0%;border-radius:99px;
     background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .15s}
   .prog-lbl{font-size:.75rem;color:var(--muted);font-family:'Space Mono',monospace}
 
-  /* ── Pastas ── */
   .folders-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem}
   .folders-header h3{font-size:1rem;font-weight:700}
   .folder-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:0.75rem;margin-bottom:1.5rem}
@@ -91,7 +87,6 @@
   .icon-btn:hover{background:var(--surface2);color:var(--text)}
   .icon-btn.danger:hover{color:var(--danger)}
 
-  /* criar pasta inline */
   .new-folder-row{display:flex;gap:0.5rem;margin-bottom:1.25rem}
   .new-folder-row input{flex:1;background:var(--surface);border:1px solid var(--border);
     color:var(--text);padding:0.55rem 0.9rem;border-radius:8px;
@@ -99,7 +94,6 @@
   .new-folder-row input:focus{border-color:var(--accent)}
   .new-folder-row input::placeholder{color:var(--muted)}
 
-  /* ── Botões ── */
   .btn{display:inline-flex;align-items:center;gap:0.4rem;
     padding:0.57rem 1.2rem;border-radius:8px;border:none;
     font-family:'Syne',sans-serif;font-weight:700;font-size:0.855rem;
@@ -113,7 +107,6 @@
   .btn-sm{padding:0.33rem 0.7rem;font-size:.75rem}
   label.btn{cursor:pointer}
 
-  /* ── Toolbar arquivos ── */
   .toolbar{display:flex;gap:0.6rem;align-items:flex-start;flex-wrap:wrap;margin-bottom:0.9rem}
   .search-wrap{flex:1;min-width:180px;position:relative}
   .search-wrap svg{position:absolute;left:.8rem;top:50%;transform:translateY(-50%);
@@ -134,7 +127,6 @@
   .results-count{font-size:.73rem;color:var(--muted);font-family:'Space Mono',monospace;
     margin-bottom:0.85rem;min-height:1rem}
 
-  /* ── Grade de arquivos ── */
   .file-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:0.85rem}
   .file-card{background:var(--surface);border:1px solid var(--border);
     border-radius:11px;overflow:hidden;transition:all .2s}
@@ -156,7 +148,6 @@
     padding:.08rem .42rem;border-radius:99px;font-size:.66rem}
   .file-actions{display:flex;gap:.35rem;flex-wrap:wrap}
 
-  /* ── Modais ── */
   .modal-bg{display:none;position:fixed;inset:0;z-index:999;
     background:rgba(0,0,0,.82);backdrop-filter:blur(8px);
     align-items:center;justify-content:center}
@@ -205,7 +196,6 @@
 
 <main>
 
-  <!-- ── Abas principais ── -->
   <div class="tabs">
     <button class="tab active" onclick="switchTab('arquivos',this)">📁 Arquivos</button>
     <button class="tab" onclick="switchTab('upload',this)">⬆ Upload</button>
@@ -257,6 +247,8 @@
           <div class="file-actions">
             <a href="/download/{{ f.name }}" class="btn btn-primary btn-sm">⬇ Baixar</a>
             <button class="btn btn-ghost btn-sm" onclick="openShare('{{ f.name }}')">🔗</button>
+            <!-- FIX: botao de apagar para usuario -->
+            <button class="btn btn-danger btn-sm" onclick="deleteFile('{{ f.name }}', this)">🗑</button>
           </div>
         </div>
       </div>
@@ -278,7 +270,6 @@
     <input type="file" id="fileInput" multiple>
     <input type="file" id="folderFileInput" multiple webkitdirectory>
 
-    <!-- Upload de arquivos -->
     <div class="upload-zone" id="dropZone">
       <span class="upload-icon">📄</span>
       <h2>Enviar Arquivos</h2>
@@ -302,7 +293,7 @@
       </div>
     </div>
 
-    <!-- Upload de pasta inteira -->
+    <!-- FIX: upload de pasta — agora chama /upload-folder que existe -->
     <div class="upload-zone" id="dropZoneFolder" style="margin-bottom:0">
       <span class="upload-icon">📂</span>
       <h2>Enviar Pasta Inteira</h2>
@@ -321,9 +312,8 @@
 
   <!-- ══ Aba: Pastas ══ -->
   <div class="tab-panel" id="tab-pastas">
-    <!-- Criar nova pasta -->
     <div class="new-folder-row">
-      <input type="text" id="newFolderName" placeholder="Nome da nova pasta…" 
+      <input type="text" id="newFolderName" placeholder="Nome da nova pasta…"
              onkeydown="if(event.key==='Enter')createFolder()">
       <button class="btn btn-primary" onclick="createFolder()">＋ Criar Pasta</button>
     </div>
@@ -355,7 +345,7 @@
         {% endfor %}
       {% else %}
       <div style="color:var(--muted);font-size:.875rem;grid-column:1/-1">
-        Nenhuma pasta criada ainda. Crie uma acima ou faça upload com uma pasta definida.
+        Nenhuma pasta ainda. Crie uma acima ou faça upload com uma pasta definida.
       </div>
       {% endif %}
     </div>
@@ -397,11 +387,9 @@
 <div class="toast" id="toast"></div>
 
 <script>
-  // ── Estado ──
   let activeFolder = '';
   let currentShareFile = '';
 
-  // ── Abas ──
   function switchTab(name, btn) {
     document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
     document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
@@ -409,7 +397,6 @@
     document.getElementById('tab-' + name).classList.add('active');
   }
 
-  // ── Drag & drop (arquivos) ──
   const dropZone  = document.getElementById('dropZone');
   const fileInput = document.getElementById('fileInput');
   ['dragenter','dragover'].forEach(e =>
@@ -427,7 +414,6 @@
     if (fileInput.files.length) uploadFiles(fileInput.files);
   });
 
-  // ── Upload de pasta ──
   const folderFileInput = document.getElementById('folderFileInput');
   folderFileInput.addEventListener('change', () => {
     if (folderFileInput.files.length) uploadFolderFiles(folderFileInput.files);
@@ -441,6 +427,7 @@
     sendWithProgress(fd, '/upload', 'progressBar', 'progressLabel', 'upload-progress');
   }
 
+  // FIX: agora envia para /upload-folder que existe no servidor
   function uploadFolderFiles(files) {
     const fd = new FormData();
     let baseName = '';
@@ -483,7 +470,6 @@
     xhr.send(fd);
   }
 
-  // ── Filtro de arquivos ao vivo ──
   function filterFiles(query) {
     const q = (query || '').toLowerCase().trim();
     const cards = document.querySelectorAll('.file-card');
@@ -509,7 +495,6 @@
     filterFiles(document.getElementById('searchInput').value);
   }
 
-  // clicar em pasta na aba Pastas → vai pra aba Arquivos filtrado
   function filterByFolder(folder) {
     switchTab('arquivos', document.querySelector('.tab'));
     activeFolder = folder;
@@ -521,7 +506,7 @@
     filterFiles('');
   }
 
-  // ── Criar pasta ──
+  // FIX: criar pasta agora funciona (rota existe no servidor)
   function createFolder() {
     const name = document.getElementById('newFolderName').value.trim();
     if (!name) { showToast('Digite um nome para a pasta', 'error'); return; }
@@ -534,11 +519,13 @@
         showToast('📂 Pasta "' + name + '" criada!', 'success');
         document.getElementById('newFolderName').value = '';
         setTimeout(() => location.reload(), 800);
+      } else {
+        showToast('❌ ' + (data.error || 'Erro'), 'error');
       }
-    });
+    }).catch(() => showToast('❌ Erro de conexão', 'error'));
   }
 
-  // ── Renomear pasta ──
+  // FIX: renomear pasta agora funciona (rota existe no servidor)
   function renameFolder(oldName) {
     const newName = prompt('Novo nome para a pasta "' + oldName + '":', oldName);
     if (!newName || newName === oldName) return;
@@ -550,11 +537,28 @@
       if (data.success) {
         showToast('✅ Pasta renomeada!', 'success');
         setTimeout(() => location.reload(), 800);
+      } else {
+        showToast('❌ ' + (data.error || 'Erro'), 'error');
       }
-    });
+    }).catch(() => showToast('❌ Erro de conexão', 'error'));
   }
 
-  // ── Preview ──
+  // FIX: usuario pode apagar arquivo
+  function deleteFile(filename, btn) {
+    if (!confirm('Apagar "' + filename + '"?')) return;
+    fetch('/delete/' + encodeURIComponent(filename), {method: 'POST'})
+      .then(r => r.json())
+      .then(data => {
+        if (data.success) {
+          showToast('🗑 Arquivo apagado', 'success');
+          const card = btn.closest('.file-card');
+          if (card) card.remove();
+        } else {
+          showToast('❌ ' + (data.error || 'Erro'), 'error');
+        }
+      }).catch(() => showToast('❌ Erro de conexão', 'error'));
+  }
+
   function openPreview(name, type) {
     if (!type) return;
     document.getElementById('previewTitle').textContent = name;
@@ -566,7 +570,6 @@
     document.getElementById('previewModal').classList.add('open');
   }
 
-  // ── Share ──
   function openShare(name) {
     currentShareFile = name;
     document.getElementById('shareFilename').textContent = name;
@@ -596,7 +599,6 @@
   document.querySelectorAll('.modal-bg').forEach(bg =>
     bg.addEventListener('click', e => { if (e.target === bg) bg.classList.remove('open'); }));
 
-  // ── Toast ──
   function showToast(msg, type) {
     const t = document.getElementById('toast');
     t.textContent = msg; t.className = 'toast show ' + (type||'');

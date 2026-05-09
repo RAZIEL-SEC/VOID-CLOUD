@@ -22,18 +22,16 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 if not os.path.exists(UPLOAD_FOLDER):
     os.makedirs(UPLOAD_FOLDER)
 
-# ── Data persistence ──────────────────────────────────────────────────────────
 def load_data():
     if os.path.exists(DATA_FILE):
         with open(DATA_FILE, 'r') as f:
             return json.load(f)
-    return {"files": {}, "share_tokens": {}, "activity_log": []}
+    return {"files": {}, "share_tokens": {}, "activity_log": [], "folders": []}
 
 def save_data(data):
     with open(DATA_FILE, 'w') as f:
         json.dump(data, f, indent=2)
 
-# ── Flask-Login ───────────────────────────────────────────────────────────────
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'admin_login'
@@ -52,7 +50,6 @@ def load_user(user_id):
         return AdminUser(user_id)
     return None
 
-# ── Helpers ───────────────────────────────────────────────────────────────────
 ALLOWED_EXTENSIONS = {
     'image': ['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg'],
     'pdf':   ['pdf'],
@@ -77,21 +74,23 @@ def get_preview_type(filename):
         return 'pdf'
     return None
 
+def get_real_ip():
+    forwarded = request.headers.get('X-Forwarded-For')
+    if forwarded:
+        return forwarded.split(',')[0].strip()
+    return request.remote_addr
+
 def log_activity(action, filename, ip=None):
     data = load_data()
     entry = {
         "action": action,
         "filename": filename,
-        "ip": ip or request.remote_addr,
+        "ip": ip or get_real_ip(),
         "timestamp": datetime.now().isoformat()
     }
     data['activity_log'].insert(0, entry)
-    data['activity_log'] = data['activity_log'][:500]  # keep last 500
+    data['activity_log'] = data['activity_log'][:500]
     save_data(data)
-
-def get_folder_for_file(filename):
-    data = load_data()
-    return data['files'].get(filename, {}).get('folder', 'geral')
 
 def human_size(size):
     for unit in ['B', 'KB', 'MB', 'GB']:
@@ -100,7 +99,15 @@ def human_size(size):
         size /= 1024
     return f"{size:.1f} TB"
 
-# ── Cleanup expired share tokens ──────────────────────────────────────────────
+def get_all_folders(data):
+    explicit = set(data.get('folders', []))
+    from_files = set(
+        data['files'].get(f, {}).get('folder', 'geral')
+        for f in os.listdir(UPLOAD_FOLDER)
+        if os.path.isfile(os.path.join(UPLOAD_FOLDER, f))
+    )
+    return sorted(explicit | from_files)
+
 def cleanup_tokens():
     while True:
         time.sleep(60)
@@ -115,7 +122,6 @@ def cleanup_tokens():
 
 threading.Thread(target=cleanup_tokens, daemon=True).start()
 
-# ── Routes: Public ────────────────────────────────────────────────────────────
 @app.route('/')
 def index():
     data = load_data()
@@ -125,6 +131,8 @@ def index():
 
     for fname in os.listdir(UPLOAD_FOLDER):
         fpath = os.path.join(UPLOAD_FOLDER, fname)
+        if not os.path.isfile(fpath):
+            continue
         meta = data['files'].get(fname, {})
         folder = meta.get('folder', 'geral')
 
@@ -143,10 +151,7 @@ def index():
             'uploaded_at': meta.get('uploaded_at', ''),
         })
 
-    folders = sorted(set(
-        data['files'].get(f, {}).get('folder', 'geral')
-        for f in os.listdir(UPLOAD_FOLDER)
-    ))
+    folders = get_all_folders(data)
 
     return render_template('index.html',
                            files=files_info,
@@ -179,6 +184,42 @@ def upload_file():
         saved.append(filename)
         log_activity('upload', filename)
 
+    if folder not in data.get('folders', []):
+        data.setdefault('folders', []).append(folder)
+
+    save_data(data)
+    return jsonify({'success': True, 'files': saved})
+
+# FIX: rota /upload-folder que o frontend chamava mas nao existia
+@app.route('/upload-folder', methods=['POST'])
+def upload_folder():
+    uploaded_files = request.files.getlist('file')
+    base_folder = request.form.get('base_folder', '').strip()
+    folder = base_folder or 'geral'
+
+    if not uploaded_files or all(f.filename == '' for f in uploaded_files):
+        return jsonify({'error': 'Nenhum arquivo enviado'}), 400
+
+    saved = []
+    data = load_data()
+    for file in uploaded_files:
+        if file.filename == '':
+            continue
+        filename = secure_filename(file.filename)
+        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        file.save(filepath)
+        data['files'][filename] = {
+            'folder': folder,
+            'downloads': 0,
+            'uploaded_at': datetime.now().isoformat(),
+            'size': os.path.getsize(filepath),
+        }
+        saved.append(filename)
+        log_activity('upload', filename)
+
+    if folder not in data.get('folders', []):
+        data.setdefault('folders', []).append(folder)
+
     save_data(data)
     return jsonify({'success': True, 'files': saved})
 
@@ -195,6 +236,19 @@ def download_file(filename):
 def preview_file(filename):
     return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
+# FIX: rota publica para usuario apagar arquivo
+@app.route('/delete/<filename>', methods=['POST'])
+def delete_file(filename):
+    file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+    if os.path.exists(file_path):
+        os.remove(file_path)
+        data = load_data()
+        data['files'].pop(filename, None)
+        save_data(data)
+        log_activity('delete', filename)
+        return jsonify({'success': True})
+    return jsonify({'error': 'Arquivo não encontrado'}), 404
+
 # ── Share links ───────────────────────────────────────────────────────────────
 @app.route('/share/create/<filename>', methods=['POST'])
 def create_share_link(filename):
@@ -210,6 +264,7 @@ def create_share_link(filename):
     link = url_for('share_download', token=token, _external=True)
     return jsonify({'link': link, 'expires_in': f'{hours}h'})
 
+# FIX: verifica se arquivo existe no disco antes de servir
 @app.route('/s/<token>')
 def share_download(token):
     data = load_data()
@@ -217,11 +272,46 @@ def share_download(token):
     if not entry:
         abort(404)
     if datetime.fromisoformat(entry['expires_at']) < datetime.now():
-        abort(410)  # Gone
+        abort(410)
     filename = entry['filename']
-    data['files'].get(filename, {})
+    file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+    if not os.path.exists(file_path):
+        abort(404)
     log_activity('share_download', filename)
     return send_from_directory(app.config['UPLOAD_FOLDER'], filename, as_attachment=True)
+
+# ── FIX: Rotas de pasta que nao existiam ─────────────────────────────────────
+@app.route('/folder/create', methods=['POST'])
+def folder_create():
+    body = request.get_json()
+    name = (body.get('name') or '').strip()
+    if not name:
+        return jsonify({'error': 'Nome inválido'}), 400
+    data = load_data()
+    if name not in data.get('folders', []):
+        data.setdefault('folders', []).append(name)
+        save_data(data)
+    return jsonify({'success': True, 'name': name})
+
+@app.route('/folder/rename', methods=['POST'])
+def folder_rename():
+    body = request.get_json()
+    old = (body.get('old') or '').strip()
+    new = (body.get('new') or '').strip()
+    if not old or not new:
+        return jsonify({'error': 'Nomes inválidos'}), 400
+    data = load_data()
+    folders = data.get('folders', [])
+    if old in folders:
+        folders[folders.index(old)] = new
+    elif new not in folders:
+        folders.append(new)
+    data['folders'] = folders
+    for fname, meta in data['files'].items():
+        if meta.get('folder') == old:
+            meta['folder'] = new
+    save_data(data)
+    return jsonify({'success': True})
 
 # ── Admin routes ──────────────────────────────────────────────────────────────
 @app.route('/admin/login', methods=['GET', 'POST'])
@@ -229,8 +319,9 @@ def admin_login():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
+        remember = request.form.get('remember') == 'on'  # FIX: lembrar de mim
         if username == ADMIN_USERNAME and check_password_hash(admin_pass_hash, password):
-            login_user(AdminUser(username))
+            login_user(AdminUser(username), remember=remember)
             return redirect(url_for('admin_dashboard'))
         flash('Credenciais inválidas')
     return render_template('admin_login.html')
@@ -245,7 +336,7 @@ def admin_logout():
 @login_required
 def admin_dashboard():
     data = load_data()
-    files = os.listdir(UPLOAD_FOLDER)
+    files = [f for f in os.listdir(UPLOAD_FOLDER) if os.path.isfile(os.path.join(UPLOAD_FOLDER, f))]
     total_size = sum(os.path.getsize(os.path.join(UPLOAD_FOLDER, f)) for f in files)
     total_downloads = sum(data['files'].get(f, {}).get('downloads', 0) for f in files)
     folders = {}
@@ -267,6 +358,8 @@ def admin_files():
     files_info = []
     for fname in os.listdir(UPLOAD_FOLDER):
         fpath = os.path.join(UPLOAD_FOLDER, fname)
+        if not os.path.isfile(fpath):
+            continue
         meta = data['files'].get(fname, {})
         files_info.append({
             'name': fname,
@@ -301,6 +394,8 @@ def admin_move(filename):
     if filename not in data['files']:
         data['files'][filename] = {}
     data['files'][filename]['folder'] = new_folder
+    if new_folder not in data.get('folders', []):
+        data.setdefault('folders', []).append(new_folder)
     save_data(data)
     return jsonify({'success': True})
 
