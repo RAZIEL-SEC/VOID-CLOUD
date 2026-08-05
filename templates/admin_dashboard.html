@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin — VOID CLOUD</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style_admin_dashboard.css') }}" />
+    <link rel="icon" href="/static/favicon.ico" type="image/x-icon" />
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;700;800&display=swap" rel="stylesheet" />
+  </head>
+  <body>
+    <div class="layout">
+      <aside>
+        <div class="logo">VOID 🦇 CLOUD</div>
+        <nav>
+          <a href="/admin" class="active">📊 Dashboard</a>
+          <a href="/admin/files">📁 Arquivos</a>
+          <a href="/admin/users">👥 Usuários</a>
+          <a href="/">🌐 Site</a>
+        </nav>
+        <div class="sidebar-footer">
+          <a href="/admin/logout">⏻ Sair</a>
+        </div>
+      </aside>
+
+      <main>
+        <h1>Dashboard</h1>
+        <p class="subtitle">Visão geral do VOID CLOUD</p>
+
+        <div class="stats-grid">
+          <div class="stat-card">
+            <span class="stat-icon">📁</span>
+            <div class="stat-value">{{ total_files }}</div>
+            <div class="stat-label">Arquivos</div>
+          </div>
+          <div class="stat-card">
+            <span class="stat-icon">💾</span>
+            <div class="stat-value">{{ total_size }}</div>
+            <div class="stat-label">Espaço Usado</div>
+          </div>
+          <div class="stat-card">
+            <span class="stat-icon">⬇</span>
+            <div class="stat-value">{{ total_downloads }}</div>
+            <div class="stat-label">Downloads</div>
+          </div>
+          <div class="stat-card">
+            <span class="stat-icon">👥</span>
+            <div class="stat-value">{{ total_users }}</div>
+            <div class="stat-label">Usuários</div>
+          </div>
+        </div>
+
+        {% if owners %}
+        <div class="section">
+          <div class="section-title">📂 Espaços (público + pastas privadas)</div>
+          <div class="folder-list">
+            {% for name, count in owners.items() %}
+            <div class="folder-row">
+              <span class="folder-name">{{ '🌐 público (sem login)' if name == 'public' else '🔒 ' + name.replace('user_', '', 1) }}</span>
+              <span class="folder-count">{{ count }} arquivo{{ 's' if count != 1 }}</span>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+
+        <div class="section">
+          <div class="section-title">📋 Log de Atividade</div>
+          {% if activity_log %}
+          <div style="overflow-x: auto">
+            <table class="log-table">
+              <thead>
+                <tr>
+                  <th>Ação</th>
+                  <th>Arquivo</th>
+                  <th>Espaço</th>
+                  <th>IP</th>
+                  <th>Data/Hora</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for entry in activity_log %}
+                <tr>
+                  <td><span class="action-badge action-{{ entry.action }}">{{ entry.action }}</span></td>
+                  <td style="font-size: 0.8rem; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                    {{ entry.filename }}
+                  </td>
+                  <td style="font-size: 0.75rem; color: var(--muted);">
+                    {{ '🌐 público' if entry.owner == 'public' else '🔒 ' + entry.owner.replace('user_', '', 1) }}
+                  </td>
+                  <td><span class="ip-badge">{{ entry.ip or '—' }}</span></td>
+                  <td style="font-family: &quot;Space Mono&quot;, monospace; color: var(--muted); font-size: 0.72rem; white-space: nowrap;">
+                    {{ entry.timestamp[:16].replace('T', ' ') }}
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          {% else %}
+          <p class="empty-log">Nenhuma atividade registrada ainda.</p>
+          {% endif %}
+        </div>
+      </main>
+    </div>
+  </body>
+</html>

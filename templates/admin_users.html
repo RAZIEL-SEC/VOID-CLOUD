@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Usuários — VOID CLOUD Admin</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style_admin_files.css') }}" />
+    <link rel="icon" href="/static/favicon.ico" type="image/x-icon" />
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;700;800&display=swap" rel="stylesheet" />
+  </head>
+  <body>
+    <div class="layout">
+      <aside>
+        <div class="logo">VOID 🦇 CLOUD</div>
+        <nav>
+          <a href="/admin">📊 Dashboard</a>
+          <a href="/admin/files">📁 Arquivos</a>
+          <a href="/admin/users" class="active">👥 Usuários</a>
+          <a href="/">🌐 Site</a>
+        </nav>
+        <div class="sidebar-footer">
+          <a href="/admin/logout">⏻ Sair</a>
+        </div>
+      </aside>
+
+      <main>
+        <h1>Usuários</h1>
+        <p class="subtitle">Contas registradas e o tamanho de suas pastas privadas</p>
+
+        {% if users %}
+        <table id="userTable">
+          <thead>
+            <tr>
+              <th>Usuário</th>
+              <th>Arquivos na pasta privada</th>
+              <th>Criado em</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for u in users %}
+            <tr>
+              <td><span class="fname">🔒 {{ u.username }}</span></td>
+              <td class="mono">{{ u.file_count }}</td>
+              <td class="mono">{{ u.created_at[:10] if u.created_at else '—' }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        {% else %}
+        <div class="empty-state">Nenhum usuário registrado ainda.</div>
+        {% endif %}
+      </main>
+    </div>
+  </body>
+</html>

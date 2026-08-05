@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Entrar — VOID CLOUD</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style_auth.css') }}" />
+    <link rel="icon" href="/static/favicon.ico" type="image/x-icon" />
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;700;800&display=swap" rel="stylesheet" />
+  </head>
+  <body>
+    <div class="glow-orb"></div>
+    <div class="card">
+      <div class="card-logo">
+        <span class="bat">🦇</span>
+        <h1>VOID CLOUD</h1>
+        <p>Entrar na sua pasta privada</p>
+      </div>
+
+      {% with messages = get_flashed_messages() %} {% if messages %}
+      <div class="error">{{ messages[0] }}</div>
+      {% endif %} {% endwith %}
+
+      <form method="POST" action="{{ url_for('user_login') }}">
+        <div class="form-group">
+          <label for="username">Usuário</label>
+          <input type="text" name="username" id="username" placeholder="seu_usuario" autocomplete="username" required />
+        </div>
+        <div class="form-group">
+          <label for="password">Senha</label>
+          <input type="password" name="password" id="password" placeholder="••••••••" autocomplete="current-password" required />
+        </div>
+
+        <div class="remember-row">
+          <input type="checkbox" name="remember" id="remember" />
+          <label for="remember">Lembrar de mim</label>
+        </div>
+
+        <button type="submit" class="btn">Entrar →</button>
+      </form>
+
+      <div class="switch">Ainda não tem conta? <a href="{{ url_for('register') }}">Criar conta</a></div>
+      <div class="back">
+        <a href="/">← Voltar ao site</a>
+      </div>
+    </div>
+  </body>
+</html>
