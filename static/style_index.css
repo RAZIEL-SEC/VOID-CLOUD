@@ -117,6 +117,55 @@ main {
 input[type="file"] {
   display: none;
 }
+
+.warning-banner {
+  background: rgba(245, 158, 11, 0.08);
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  color: var(--text);
+  border-radius: 12px;
+  padding: 1rem 1.2rem;
+  font-size: 0.83rem;
+  line-height: 1.55;
+  margin-bottom: 1.25rem;
+}
+.warning-banner strong {
+  color: var(--warning);
+}
+.warning-banner a {
+  color: var(--accent2);
+  font-weight: 700;
+  text-decoration: none;
+}
+.warning-banner a:hover {
+  text-decoration: underline;
+}
+.consent-row {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  margin-top: 0.8rem;
+  padding-top: 0.8rem;
+  border-top: 1px solid rgba(245, 158, 11, 0.25);
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.consent-row input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--warning);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.upload-zone.upload-disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.upload-zone.upload-disabled:hover {
+  border-color: var(--border);
+}
+
 .upload-zone {
   border: 2px dashed var(--border);
   border-radius: 14px;

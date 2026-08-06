@@ -1,0 +1,312 @@
+:root {
+  --bg: #0a0a0f;
+  --surface: #111118;
+  --surface2: #1a1a24;
+  --border: #2a2a3a;
+  --accent: #7c3aed;
+  --accent2: #a855f7;
+  --accent-glow: rgba(124, 58, 237, 0.2);
+  --text: #e8e8f0;
+  --muted: #6b6b80;
+  --danger: #ef4444;
+  --success: #22c55e;
+}
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: "Syne", sans-serif;
+  min-height: 100vh;
+}
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(124, 58, 237, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(124, 58, 237, 0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+  z-index: 0;
+}
+.layout {
+  display: flex;
+  min-height: 100vh;
+  position: relative;
+  z-index: 1;
+}
+
+aside {
+  width: 220px;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  padding: 1.5rem 1rem;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+}
+.logo {
+  font-size: 1.2rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, #a855f7, #7c3aed);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 2rem;
+  padding-left: 0.5rem;
+}
+aside nav {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  flex: 1;
+}
+aside nav a {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.65rem 0.8rem;
+  border-radius: 8px;
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 0.875rem;
+  font-weight: 700;
+  transition: all 0.2s;
+}
+aside nav a:hover,
+aside nav a.active {
+  background: var(--surface2);
+  color: var(--text);
+}
+aside nav a.active {
+  border-left: 3px solid var(--accent);
+  padding-left: calc(0.8rem - 3px);
+}
+.sidebar-footer a {
+  display: block;
+  padding: 0.65rem 0.8rem;
+  border-radius: 8px;
+  color: var(--danger);
+  text-decoration: none;
+  font-size: 0.875rem;
+  font-weight: 700;
+  transition: background 0.2s;
+}
+.sidebar-footer a:hover {
+  background: rgba(239, 68, 68, 0.1);
+}
+
+main {
+  flex: 1;
+  padding: 2rem;
+  overflow: auto;
+}
+h1 {
+  font-size: 1.6rem;
+  font-weight: 800;
+  margin-bottom: 0.3rem;
+}
+.subtitle {
+  color: var(--muted);
+  font-size: 0.875rem;
+  margin-bottom: 1.5rem;
+}
+
+.flash {
+  background: rgba(34, 197, 94, 0.1);
+  border: 1px solid var(--success);
+  color: var(--success);
+  border-radius: 8px;
+  padding: 0.8rem 1rem;
+  margin-bottom: 1.5rem;
+  font-size: 0.875rem;
+}
+
+.toolbar {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  align-items: center;
+}
+.search-wrap {
+  flex: 1;
+  position: relative;
+  max-width: 320px;
+}
+.search-wrap input {
+  width: 100%;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 0.6rem 1rem 0.6rem 2.5rem;
+  border-radius: 8px;
+  font-family: "Syne", sans-serif;
+  font-size: 0.875rem;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.search-wrap input:focus {
+  border-color: var(--accent);
+}
+.search-wrap::before {
+  content: "⌕";
+  position: absolute;
+  left: 0.8rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--muted);
+  font-size: 1.1rem;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+thead th {
+  text-align: left;
+  padding: 0.6rem 0.8rem;
+  font-weight: 700;
+  color: var(--muted);
+  border-bottom: 1px solid var(--border);
+  font-family: "Space Mono", monospace;
+  text-transform: uppercase;
+  font-size: 0.7rem;
+}
+tbody td {
+  padding: 0.75rem 0.8rem;
+  border-bottom: 1px solid rgba(42, 42, 58, 0.5);
+  font-size: 0.875rem;
+  vertical-align: middle;
+}
+tbody tr:hover td {
+  background: var(--surface2);
+}
+
+.category-icon {
+  font-size: 1.2rem;
+}
+.fname {
+  font-weight: 700;
+}
+.mono {
+  font-family: "Space Mono", monospace;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+.folder-badge {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  padding: 0.15rem 0.5rem;
+  border-radius: 99px;
+  font-size: 0.75rem;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.35rem 0.7rem;
+  border-radius: 6px;
+  border: none;
+  font-family: "Syne", sans-serif;
+  font-weight: 700;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-decoration: none;
+}
+.btn-primary {
+  background: var(--accent);
+  color: #fff;
+}
+.btn-primary:hover {
+  background: var(--accent2);
+}
+.btn-danger {
+  background: rgba(239, 68, 68, 0.15);
+  color: var(--danger);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+.btn-danger:hover {
+  background: rgba(239, 68, 68, 0.3);
+}
+.btn-ghost {
+  background: transparent;
+  color: var(--muted);
+  border: 1px solid var(--border);
+}
+.btn-ghost:hover {
+  color: var(--text);
+  border-color: var(--accent);
+}
+
+/* FIX: botao de mover com tooltip claro */
+.move-form {
+  display: inline-flex;
+  gap: 0.3rem;
+  align-items: center;
+}
+.move-form input {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 0.25rem 0.5rem;
+  border-radius: 6px;
+  font-family: "Syne", sans-serif;
+  font-size: 0.75rem;
+  width: 100px;
+  outline: none;
+}
+.move-form input:focus {
+  border-color: var(--accent);
+}
+/* FIX: botao mover tem tooltip explicando o que faz */
+.btn-move {
+  background: rgba(124, 58, 237, 0.15);
+  color: var(--accent2);
+  border: 1px solid rgba(124, 58, 237, 0.3);
+}
+.btn-move:hover {
+  background: rgba(124, 58, 237, 0.3);
+}
+
+.empty-state {
+  text-align: center;
+  padding: 4rem;
+  color: var(--muted);
+}
+
+.toast {
+  position: fixed;
+  bottom: 1.4rem;
+  right: 1.4rem;
+  z-index: 9999;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  padding: 0.7rem 1rem;
+  font-size: 0.855rem;
+  transform: translateY(70px);
+  opacity: 0;
+  transition: all 0.3s;
+  pointer-events: none;
+}
+.toast.show {
+  transform: translateY(0);
+  opacity: 1;
+}
+.toast.success {
+  border-color: var(--success);
+  color: var(--success);
+}
+.toast.error {
+  border-color: var(--danger);
+  color: var(--danger);
+}
