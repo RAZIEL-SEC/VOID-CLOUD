@@ -81,7 +81,6 @@
 
         <div class="results-count" id="resultsCount"></div>
 
-        {% if files %}
         <div class="file-grid" id="fileGrid">
           {% for f in files %}
           <div
@@ -126,19 +125,17 @@
           </div>
           {% endfor %}
         </div>
-        <div class="empty-state" id="noResults" style="display: none">
-          <span class="icon">🔍</span>
-          <p>Nenhum arquivo encontrado.</p>
-        </div>
-        {% else %}
-        <div class="empty-state">
+        <div class="empty-state" id="emptyState" style="display: {{ 'none' if files else 'block' }};">
           <span class="icon">🦇</span>
           <p>
             Sem arquivos ainda.<br />Use a aba <strong>Upload</strong> para
             enviar!
           </p>
         </div>
-        {% endif %}
+        <div class="empty-state" id="noResults" style="display: none">
+          <span class="icon">🔍</span>
+          <p>Nenhum arquivo encontrado.</p>
+        </div>
       </div>
 
       <!-- ══ Aba: Upload ══ -->
@@ -146,6 +143,15 @@
         {% if is_logged_in %}
         <div class="results-count" style="color:var(--success); margin-bottom:0.9rem;">
           🔒 Você está logado — os arquivos enviados aqui vão para sua pasta privada, visível só para você (e para o admin).
+        </div>
+        <div class="upload-destination">
+          <span class="upload-destination-label">📂 Enviar para a pasta</span>
+          <select class="folder-select" id="folderSelect">
+            <option value="geral">geral</option>
+            {% for folder in folders %}
+            <option value="{{ folder }}">{{ folder }}</option>
+            {% endfor %}
+          </select>
         </div>
         {% else %}
         <div class="warning-banner" id="publicWarning">
@@ -169,14 +175,6 @@
           <h2>Enviar Arquivos</h2>
           <p>Arraste aqui ou clique para selecionar — múltiplos suportados</p>
           <div class="upload-row">
-            {% if is_logged_in %}
-            <select class="folder-select" id="folderSelect" onclick="event.stopPropagation()">
-              <option value="geral">📂 geral</option>
-              {% for folder in folders %}
-              <option value="{{ folder }}">📂 {{ folder }}</option>
-              {% endfor %}
-            </select>
-            {% endif %}
             <label for="fileInput" class="btn btn-primary" onclick="event.stopPropagation()">
               ＋ Selecionar Arquivos
             </label>
@@ -291,11 +289,90 @@
 
     <script>
       const isLoggedIn = {{ 'true' if is_logged_in else 'false' }};
+      const currentView = {{ (view or 'public')|tojson }};
       let activeFolder = '';
       let currentShareFile = { owner_dir: '', name: '' };
       let moveFileData = { owner_dir: '', filename: '', srcFolder: '' };
 
       const allFolders = [{% for folder in folders %}"{{ folder }}"{% if not loop.last %},{% endif %}{% endfor %}];
+
+      function escapeHtml(s) {
+        return String(s)
+          .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+      }
+      function escapeJs(s) {
+        return String(s).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+      }
+
+      function categoryIcon(f) {
+        if (f.preview_type === 'pdf') return '📄';
+        if (f.category === 'video') return '🎬';
+        if (f.category === 'audio') return '🎵';
+        if (f.category === 'archive') return '🗜️';
+        if (f.category === 'doc') return '📝';
+        return '📁';
+      }
+
+      function buildFileCard(f, view) {
+        const card = document.createElement('div');
+        card.className = 'file-card';
+        card.dataset.name = f.name.toLowerCase();
+        card.dataset.folder = f.folder || '';
+
+        let previewInner;
+        if (f.preview_type === 'image') {
+          previewInner = '<img src="/preview/' + encodeURIComponent(f.owner_dir) + '/' + encodeURIComponent(f.name) +
+            '" alt="' + escapeHtml(f.name) + '" loading="lazy"><div class="ov">👁 Ver</div>';
+        } else {
+          previewInner = categoryIcon(f);
+          if (f.preview_type) previewInner += '<div class="ov">👁 Ver</div>';
+        }
+
+        const folderBadge = f.folder ? '<span class="fbadge">📂 ' + escapeHtml(f.folder) + '</span>' : '';
+
+        let actions =
+          '<a href="/download/' + encodeURIComponent(f.owner_dir) + '/' + encodeURIComponent(f.name) + '" class="btn btn-primary btn-sm">⬇ Baixar</a>' +
+          '<button class="btn btn-ghost btn-sm" onclick="openShare(\'' + escapeJs(f.owner_dir) + '\',\'' + escapeJs(f.name) + '\')">🔗</button>';
+        if (f.can_manage) {
+          if (view === 'private') {
+            actions += '<button class="btn btn-ghost btn-sm" onclick="openMoveModal(\'' + escapeJs(f.owner_dir) + '\',\'' + escapeJs(f.name) + '\',\'' + escapeJs(f.folder || 'geral') + '\')">↗ Mover</button>';
+          }
+          actions += '<button class="btn btn-danger btn-sm" onclick="deleteFile(\'' + escapeJs(f.owner_dir) + '\',\'' + escapeJs(f.name) + '\', this)">🗑</button>';
+        }
+
+        card.innerHTML =
+          '<div class="file-preview" onclick="openPreview(\'' + escapeJs(f.owner_dir) + '\',\'' + escapeJs(f.name) + '\',\'' + (f.preview_type || '') + '\')">' +
+            previewInner +
+          '</div>' +
+          '<div class="file-info">' +
+            '<div class="file-name" title="' + escapeHtml(f.name) + '">' + escapeHtml(f.name) + '</div>' +
+            '<div class="file-meta"><span>' + f.size + '</span>' + folderBadge + '<span>⬇ ' + f.downloads + '</span></div>' +
+            '<div class="file-actions">' + actions + '</div>' +
+          '</div>';
+        return card;
+      }
+
+      // ── Atualiza a listagem de arquivos sem recarregar a página ──
+      async function refreshFileGrid() {
+        try {
+          const res = await fetch('/api/files?view=' + encodeURIComponent(currentView));
+          if (!res.ok) return;
+          const data = await res.json();
+          const grid = document.getElementById('fileGrid');
+          grid.innerHTML = '';
+          data.files.forEach(f => grid.appendChild(buildFileCard(f, currentView)));
+
+          const emptyState = document.getElementById('emptyState');
+          if (emptyState) emptyState.style.display = data.files.length ? 'none' : 'block';
+
+          // reaplica busca/filtro de pasta que já estavam ativos
+          filterFiles(document.getElementById('searchInput')?.value || '');
+        } catch (e) {
+          // se a atualização ao vivo falhar por qualquer motivo, cai pro reload como último recurso
+          location.reload();
+        }
+      }
 
       function switchTab(name, btn) {
         document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
@@ -370,12 +447,17 @@
             lbl.textContent = 'Enviando… ' + pct + '%';
           }
         });
-        xhr.addEventListener('load', () => {
+        xhr.addEventListener('load', async () => {
           if (xhr.status >= 200 && xhr.status < 300) {
             bar.style.width = '100%';
             lbl.textContent = 'Concluído!';
             showToast('✅ Upload concluído!', 'success');
-            setTimeout(() => { prog.style.display = 'none'; location.reload(); }, 1000);
+            await refreshFileGrid();
+            fileInput.value = '';
+            setTimeout(() => {
+              prog.style.display = 'none';
+              switchTab('arquivos', document.querySelector('.tab'));
+            }, 600);
           } else {
             let msg = 'Erro no upload';
             try { msg = JSON.parse(xhr.responseText).error || msg; } catch (e) {}
