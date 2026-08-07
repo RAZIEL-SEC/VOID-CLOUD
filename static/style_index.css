@@ -166,6 +166,33 @@ input[type="file"] {
   border-color: var(--border);
 }
 
+.upload-destination {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  flex-wrap: wrap;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 0.7rem 1.1rem;
+  margin-bottom: 1.1rem;
+  transition: border-color 0.2s;
+}
+.upload-destination:hover {
+  border-color: #3d3d52;
+}
+.upload-destination-label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--muted);
+  white-space: nowrap;
+}
+.upload-destination .folder-select {
+  flex: 1;
+  min-width: 160px;
+  background: var(--surface2);
+}
+
 .upload-zone {
   border: 2px dashed var(--border);
   border-radius: 14px;
